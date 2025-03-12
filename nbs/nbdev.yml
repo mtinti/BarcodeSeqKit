@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "BarcodeSeqKit"
+  site-url: "https://mtinti.github.io/BarcodeSeqKit"
+  description: "BarcodeSeqKit is a library designed for extracting and processing barcoded sequences from next-generation sequencing data."
+  repo-branch: main
+  repo-url: "https://github.com/mtinti/BarcodeSeqKit"

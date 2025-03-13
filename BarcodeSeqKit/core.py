@@ -425,7 +425,7 @@ class ExtractorFactory:
         # Import the appropriate extractor
         if format_type == FileFormat.BAM:
             # Importing here to avoid circular imports
-            from barcodeseqkit.bam_extractor import BamExtractor
+            from BarcodeSeqKit.bam_processing import BamExtractor
             return BamExtractor(
                 barcodes=config.barcodes,
                 output_prefix=config.output_prefix,
@@ -438,13 +438,13 @@ class ExtractorFactory:
             )
         elif format_type == FileFormat.FASTQ:
             # Importing here to avoid circular imports
-            from barcodeseqkit.fastq_extractor import FastqExtractor
+            from BarcodeSeqKit.fastq_processing import FastqExtractor
             
             # Check if we have paired files
             if len(input_files) == 1:
                 # Single path provided, check if it's a directory
                 if os.path.isdir(input_files[0]):
-                    from barcodeseqkit.fastq_handler import FastqHandler
+                    from BarcodeSeqKit.fastq_processing import FastqHandler
                     # Find paired files in the directory
                     r1_path, r2_path = FastqHandler.find_fastq_pairs(input_files[0])
                     fastq_files = [r1_path, r2_path]

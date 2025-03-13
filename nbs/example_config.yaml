@@ -2,13 +2,13 @@ barcodes:
 - description: 5' barcode for phenotyping experiment
   location: '5'
   name: '5'
-  reverse_complement: GCCTCGCGA
-  sequence: TCGCGAGGC
+  reverse_complement: GCCTCTTGGCGA
+  sequence: TCGCCAAGAGGC
 - description: 3' barcode for phenotyping experiment
   location: '3'
   name: '3'
-  reverse_complement: TCGCGAGGC
-  sequence: GCCTCGCGA
+  reverse_complement: TCGATTCGAGGC
+  sequence: GCCTCGAATCGA
 keep_unmatched: true
 log_file: null
 merge_orientations: true

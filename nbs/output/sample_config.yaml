@@ -1,0 +1,12 @@
+barcodes:
+- description: 5' barcode from command line
+  location: '5'
+  name: '5'
+  reverse_complement: ACGTACGT
+  sequence: ACGTACGT
+keep_unmatched: true
+log_file: null
+merge_orientations: false
+output_dir: ./output
+output_prefix: sample
+verbose: false

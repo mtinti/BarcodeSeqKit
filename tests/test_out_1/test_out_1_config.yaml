@@ -1,0 +1,17 @@
+barcodes:
+- description: 5' barcode from command line
+  location: '5'
+  name: '5'
+  reverse_complement: GGCCCTTAAGGAGTCAG
+  sequence: CTGACTCCTTAAGGGCC
+- description: 3' barcode from command line
+  location: '3'
+  name: '3'
+  reverse_complement: GCCGGCCTCAGTTA
+  sequence: TAACTGAGGCCGGC
+keep_unmatched: true
+log_file: null
+merge_orientations: false
+output_dir: tests/test_out_1
+output_prefix: test_out_1
+verbose: false

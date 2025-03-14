@@ -134,9 +134,10 @@ def add_extract_arguments(parser: argparse.ArgumentParser):
     )
     
     processing_group.add_argument(
-        '--search-mate',
+        '--search-softclipped',
+        default=False,
         action='store_true',
-        help='Search for barcodes in mate reads (BAM only)'
+        help='Search for barcodes in softclipped read region (BAM only)'
     )
     
     processing_group.add_argument(
@@ -322,7 +323,7 @@ def run_cli(args: Optional[List[str]] = None) -> int:
         # Set additional extractor options based on file format
         if FileFormat.detect_format(input_files[0]) == FileFormat.BAM:
             if hasattr(extractor, 'search_mate'):
-                extractor.search_mate = parsed_args.search_mate
+                extractor.search_softclipped = parsed_args.search_softclipped
             if hasattr(extractor, 'max_mismatches'):
                 extractor.max_mismatches = parsed_args.max_mismatches
         else:  # FASTQ

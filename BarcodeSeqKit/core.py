@@ -326,6 +326,7 @@ class ExtractorConfig:
     keep_unmatched: bool = True
     verbose: bool = False
     log_file: Optional[str] = None
+    search_softclipped: Optional[bool] = False
     
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Any]) -> 'ExtractorConfig':
@@ -349,7 +350,9 @@ class ExtractorConfig:
             merge_orientations=config_dict.get("merge_orientations", False),
             keep_unmatched=config_dict.get("keep_unmatched", True),
             verbose=config_dict.get("verbose", False),
-            log_file=config_dict.get("log_file")
+            log_file=config_dict.get("log_file"),
+            search_softclipped=config_dict.get("search_softclipped", False)
+            
         )
     
     def to_dict(self) -> Dict[str, Any]:
@@ -361,7 +364,8 @@ class ExtractorConfig:
             "merge_orientations": self.merge_orientations,
             "keep_unmatched": self.keep_unmatched,
             "verbose": self.verbose,
-            "log_file": self.log_file
+            "log_file": self.log_file,
+            "search_softclipped":self.search_softclipped
         }
     
     def save_yaml(self, output_path: str) -> None:
@@ -461,6 +465,7 @@ class ExtractorFactory:
                 verbose=config.verbose,
                 log_file=config.log_file,
                 bam_file=input_files[0]
+                
             )
         elif format_type == FileFormat.FASTQ:
             # Importing here to avoid circular imports

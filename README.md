@@ -37,7 +37,7 @@ BarcodeSeqKit provides a command-line interface through the
     usage: barcodeseqkit [-h] [--bam BAM | --fastq1 FASTQ1 | --fastq-dir FASTQ_DIR] [--fastq2 FASTQ2]
                            [--barcode-config BARCODE_CONFIG | --barcode BARCODE | --barcode5 BARCODE5] [--barcode3 BARCODE3]
                            [--max-mismatches MAX_MISMATCHES] --output-prefix OUTPUT_PREFIX
-                           [--output-dir OUTPUT_DIR] [--discard-unmatched]
+                           [--output-dir OUTPUT_DIR] [--discard-unmatched] [--search-softclipped]
                            [--search-both-reads] [--verbose] [--log-file LOG_FILE]
 
 #### Single Barcode Example
@@ -74,7 +74,7 @@ output files for all combinations of barcode locations and orientations.
 Let’s run an example with both 5’ and 3’ barcodes:
 
 ``` python
-!barcodeseqkit --bam ../tests/test.bam \
+barcodeseqkit --bam ../tests/test.bam \
 --barcode5 CTGACTCCTTAAGGGCC \
 --barcode3 TAACTGAGGCCGGC \
 --output-prefix test_out_2 --output-dir ../tests/test_out_2
@@ -92,6 +92,21 @@ orientation - `test_out_2_barcode3_orientRC.bam`: Reads with the 3’
 barcode in reverse complement orientation - `test_out_2_noBarcode.bam`:
 Reads without any barcode - `test_out_2_extraction_stats.json` and
 `test_out_2_extraction_stats.tsv`: Extraction statistics
+
+## Extracting Softclipped Regions from Alignments
+
+> BarcodeSeqKit also includes an option to analyse only the softclipped
+> sequences from read alignments.
+
+Barcodes are generally present in softclipped regions of the reads. Also
+we can use to look for the splice leader sequence (trypanosomatids).
+
+The
+[`extract_softclipped_region`](https://mtinti.github.io/BarcodeSeqKit/bam_processing.html#extract_softclipped_region)
+function extracts orientation-specific softclipped sequences: - For
+reads on the forward strand (+): extracts the softclipped sequence at
+the 5’ end - For reads on the reverse strand (-): extracts the
+softclipped sequence at the 3’ end
 
 ## Examining Extraction Statistics
 
@@ -319,11 +334,7 @@ df
 You can also use BarcodeSeqKit programmatically in your Python code.
 Here’s an example:
 
-``` python
-#!samtools sort -n -o ../tests/test_sorted_by_name.bam ../tests/test.bam
-#!bamToFastq -i ../tests/test_sorted_by_name.bam -fq ../tests/test.1.fastq -fq2 ../tests/test.2.fastq
-#!gzip ../tests/test.2.fastq
-```
+## Bam file
 
 ``` python
 from BarcodeSeqKit.core import BarcodeConfig, ExtractorConfig, ExtractorFactory, BarcodeLocationType
@@ -349,9 +360,11 @@ config = ExtractorConfig(
     output_prefix="programmatic_example",
     output_dir="../tests/programmatic_out",
     keep_unmatched=True,
-    verbose=True
+    verbose=True,
+    #search_softclipped=True
+    
+    
 )
-
 # Create the extractor
 extractor = ExtractorFactory.create_extractor(config, "../tests/test.bam")
 stats = extractor.extract()
@@ -359,13 +372,15 @@ print(f"Extraction complete: {stats.total_barcode_matches} matches in {stats.tot
 #extractor
 ```
 
-    2025-03-14 10:00:29,646 - BarcodeSeqKit - INFO - Extraction complete: 18 matches in 498 reads
-    2025-03-14 10:00:29,740 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out/programmatic_example_extraction_stats.json and ../tests/programmatic_out/programmatic_example_extraction_stats.tsv
+    2025-03-14 10:45:14,191 - BarcodeSeqKit - INFO - Extraction complete: 18 matches in 498 reads
+    2025-03-14 10:45:14,317 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out/programmatic_example_extraction_stats.json and ../tests/programmatic_out/programmatic_example_extraction_stats.tsv
 
     Extraction complete: 18 matches in 498 aligments
 
+## Fastq paired file
+
 ``` python
-# Initialize the extractor
+# Initialize the extractor Extraction complete: 18 matches in 498 aligments
 from BarcodeSeqKit.fastq_processing import FastqExtractor
 extractor = FastqExtractor(
     barcodes=[barcode5, barcode3],
@@ -382,8 +397,8 @@ print(f"Extraction complete: {stats.total_barcode_matches} matches in {stats.tot
 
     0it [00:00, ?it/s]
 
-    2025-03-14 10:00:42,365 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out_fastq/res_extraction_stats.json and ../tests/programmatic_out_fastq/res_extraction_stats.tsv
-    2025-03-14 10:00:42,365 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out_fastq/res_extraction_stats.json and ../tests/programmatic_out_fastq/res_extraction_stats.tsv
+    2025-03-14 10:45:14,491 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out_fastq/res_extraction_stats.json and ../tests/programmatic_out_fastq/res_extraction_stats.tsv
+    2025-03-14 10:45:14,491 - BarcodeSeqKit - INFO - Statistics saved to ../tests/programmatic_out_fastq/res_extraction_stats.json and ../tests/programmatic_out_fastq/res_extraction_stats.tsv
 
     Extraction complete: 18 matches in 247 reads
 

@@ -82,13 +82,18 @@ def add_extract_arguments(parser: argparse.ArgumentParser):
     )
     
     barcode_mutex.add_argument(
+        '--barcode',
+        help='Single barcode sequence (no specific location, will generate barcode_orientFR and barcode_orientRC outputs)'
+    )
+    
+    barcode_mutex.add_argument(
         '--barcode5',
-        help="5' barcode sequence (forward orientation)"
+        help="5' barcode sequence (will generate barcode5_orientFR and barcode5_orientRC outputs)"
     )
     
     barcode_group.add_argument(
         '--barcode3',
-        help="3' barcode sequence (forward orientation)"
+        help="3' barcode sequence (will generate barcode3_orientFR and barcode3_orientRC outputs, can be used with --barcode5)"
     )
     
     barcode_group.add_argument(
@@ -111,13 +116,6 @@ def add_extract_arguments(parser: argparse.ArgumentParser):
         '--output-dir',
         default='.',
         help='Directory for output files (default: current directory)'
-    )
-    
-    output_group.add_argument(
-        '--merge-orientations',
-        action='store_true',
-        default=False,
-        help='Merge forward and reverse complement orientations into a single output'
     )
     
     output_group.add_argument(
@@ -162,12 +160,17 @@ def add_extract_arguments(parser: argparse.ArgumentParser):
     )
     return parser
 
+
+
 # %% ../nbs/ 04_cli.ipynb 9
 def run_cli(args: Optional[List[str]] = None) -> int:
     """Handle the extract command.
     
     Args:
         args: Command-line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for error)
     """
     parser = argparse.ArgumentParser(
         description="BarcodeSeqKit: A toolkit for barcode extraction from sequencing data",
@@ -179,19 +182,34 @@ def run_cli(args: Optional[List[str]] = None) -> int:
     try:
         parsed_args = parser.parse_args(args)
         
-        # Set up logging
-        log_level = logging.DEBUG if parsed_args.verbose else logging.INFO
-        logging.basicConfig(
-            level=log_level,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        
+        # Set up logging - prevent duplicate handlers
         logger = logging.getLogger('BarcodeSeqKit')
+        logger.handlers = []  # Clear any existing handlers
         
+        log_level = logging.DEBUG if parsed_args.verbose else logging.INFO
+        logger.setLevel(log_level)
+        
+        # Remove any root logger handlers to prevent duplicate messages
+        root_logger = logging.getLogger()
+        root_logger.handlers = []
+        
+        # Add console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        console_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(console_format)
+        logger.addHandler(console_handler)
+        
+        # Add file handler if requested
         if parsed_args.log_file:
             file_handler = logging.FileHandler(parsed_args.log_file)
-            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            file_handler.setLevel(log_level)
+            file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(file_format)
             logger.addHandler(file_handler)
+        
+        # Prevent propagation to root logger
+        logger.propagate = False
         
         # Create output directory if it doesn't exist
         os.makedirs(parsed_args.output_dir, exist_ok=True)
@@ -218,6 +236,7 @@ def run_cli(args: Optional[List[str]] = None) -> int:
         
         if parsed_args.barcode_config:
             # Load from YAML file
+            import yaml
             with open(parsed_args.barcode_config, 'r') as f:
                 config_data = yaml.safe_load(f)
             
@@ -235,28 +254,58 @@ def run_cli(args: Optional[List[str]] = None) -> int:
                 return 1
         else:
             # Create from command-line arguments
-            if parsed_args.barcode5:
+            if parsed_args.barcode:
+                # Single barcode mode (no specific location)
+                barcodes.append(BarcodeConfig(
+                    sequence=parsed_args.barcode,
+                    location=BarcodeLocationType.UNKNOWN,
+                    name="generic",
+                    description="Generic barcode from command line"
+                ))
+                logger.info(f"Using single barcode mode with sequence: {parsed_args.barcode}")
+            elif parsed_args.barcode5:
                 barcodes.append(BarcodeConfig(
                     sequence=parsed_args.barcode5,
                     location=BarcodeLocationType.FIVE_PRIME,
                     name="5",
                     description="5' barcode from command line"
                 ))
-            
-            if parsed_args.barcode3:
+                logger.info(f"Using 5' barcode with sequence: {parsed_args.barcode5}")
+                
+                if parsed_args.barcode3:
+                    barcodes.append(BarcodeConfig(
+                        sequence=parsed_args.barcode3,
+                        location=BarcodeLocationType.THREE_PRIME,
+                        name="3",
+                        description="3' barcode from command line"
+                    ))
+                    logger.info(f"Using 3' barcode with sequence: {parsed_args.barcode3}")
+            elif parsed_args.barcode3:
+                # If only barcode3 is provided without barcode5, treat as single barcode
                 barcodes.append(BarcodeConfig(
                     sequence=parsed_args.barcode3,
-                    location=BarcodeLocationType.THREE_PRIME,
-                    name="3",
-                    description="3' barcode from command line"
+                    location=BarcodeLocationType.UNKNOWN,
+                    name="generic",
+                    description="Generic barcode from command line (provided as barcode3)"
                 ))
+                logger.info(f"Using single barcode mode with sequence: {parsed_args.barcode3} (from barcode3)")
+        
+        # Validate that we have at least one barcode
+        if not barcodes:
+            logger.error("No barcode configurations provided")
+            return 1
+        
+        # Determine if we're in single barcode mode
+        single_barcode_mode = len(barcodes) == 1 or all(b.location.value == "UNK" for b in barcodes)
+        output_description = "barcode_orientFR/RC" if single_barcode_mode else "barcode5_orientFR/RC/barcode3_orientFR/RC"
+        logger.info(f"Will create output files with pattern: {parsed_args.output_prefix}_{output_description}.bam")
         
         # Create extractor configuration
         config = ExtractorConfig(
             barcodes=barcodes,
             output_prefix=parsed_args.output_prefix,
             output_dir=parsed_args.output_dir,
-            merge_orientations=parsed_args.merge_orientations,
+            merge_orientations=False,  # Always set to False with new behavior
             keep_unmatched=not parsed_args.discard_unmatched,
             verbose=parsed_args.verbose,
             log_file=parsed_args.log_file
@@ -293,13 +342,24 @@ def run_cli(args: Optional[List[str]] = None) -> int:
         logger.info(f"Total reads: {stats.total_reads}")
         logger.info(f"Barcode matches: {stats.total_barcode_matches}")
         logger.info(f"No barcode: {stats.no_barcode_count}")
-        logger.info(f"Match rate: {(stats.total_barcode_matches / stats.total_reads) * 100:.2f}%")
         
+        if stats.total_reads > 0:
+            match_rate = (stats.total_barcode_matches / stats.total_reads) * 100
+            logger.info(f"Match rate: {match_rate:.2f}%")
+        
+        # Log barcode-specific statistics
         for barcode_name, count in stats.matches_by_barcode.items():
             logger.info(f"Barcode {barcode_name}: {count} matches")
         
+        # Log orientation-specific statistics
         for orientation, count in stats.matches_by_orientation.items():
             logger.info(f"Orientation {orientation}: {count} matches")
+        
+        # Log category-specific statistics
+        if hasattr(stats, 'matches_by_category') and stats.matches_by_category:
+            logger.info("Match statistics by category:")
+            for category, count in stats.matches_by_category.items():
+                logger.info(f"  {category}: {count} matches")
             
         return 0
         

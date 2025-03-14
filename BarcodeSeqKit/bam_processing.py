@@ -146,6 +146,7 @@ class BamExtractor(BarcodeExtractor):
         self.bam_file = bam_file
         self.max_mismatches = max_mismatches
         self.search_mate = search_mate
+        self.single_barcode_mode = len(self.barcodes) == 1 or all(b.location.value == "UNK" for b in self.barcodes)
         
         # Check if BAM file is sorted and indexed
         try:
@@ -164,9 +165,9 @@ class BamExtractor(BarcodeExtractor):
         # Count the total number of reads
         self.total_reads = BamUtils.get_read_count(bam_file)
         
-        self.logger.info(f"Initialized BamExtractor with {len(barcodes)} barcodes")
-        self.logger.info(f"BAM file: {bam_file} ({self.total_reads} reads)")
-        self.logger.info(f"Output categories: {self.categories}")
+        #self.logger.info(f"Initialized BamExtractor with {len(barcodes)} barcodes")
+        #self.logger.info(f"BAM file: {bam_file} ({self.total_reads} reads)")
+        #self.logger.info(f"Output categories: {self.categories}")
     
     def _prepare_categories(self) -> List[str]:
         """Prepare output categories based on barcodes.
@@ -176,30 +177,17 @@ class BamExtractor(BarcodeExtractor):
         """
         categories = []
         
-        # Single barcode mode (no location specified) or multiple barcodes
-        single_barcode_mode = all(b.location.value == "UNK" for b in self.barcodes)
-        
-        if single_barcode_mode:
-            if self.merge_orientations:
-                categories.append("barcode_orientAll")
-            else:
-                categories.extend(["barcode_orientFR", "barcode_orientRC"])
+        if self.single_barcode_mode:
+            # Single barcode mode (either one barcode or multiple without specific locations)
+            categories.extend(["barcode_orientFR", "barcode_orientRC"])
         else:
-            # Multiple barcodes with locations
+            # Multiple barcodes with specific locations (5' and/or 3')
             for barcode in self.barcodes:
-                location = barcode.location.value
-                if location in ["5", "3"]:
-                    if self.merge_orientations:
-                        categories.append(f"barcode{location}_orientAll")
-                    else:
-                        categories.extend([
-                            f"barcode{location}_orient{OrientationType.FORWARD.value}",
-                            f"barcode{location}_orient{OrientationType.REVERSE_COMPLEMENT.value}"
-                        ])
-        
-        # Add combined categories
-        if len(self.barcodes) > 1 and not single_barcode_mode:
-            categories.append("combined_barcodeAll")
+                if barcode.location.value in ["5", "3"]:
+                    categories.extend([
+                        f"barcode{barcode.location.value}_orientFR",
+                        f"barcode{barcode.location.value}_orientRC"
+                    ])
         
         # Add no barcode category
         if self.keep_unmatched:
@@ -213,7 +201,7 @@ class BamExtractor(BarcodeExtractor):
         Returns:
             Statistics from the extraction process
         """
-        self.logger.info("Starting barcode extraction from BAM file")
+        #self.logger.info("Starting barcode extraction from BAM file")
         
         # Initialize statistics
         stats = ExtractionStatistics()
@@ -226,27 +214,19 @@ class BamExtractor(BarcodeExtractor):
         output_files = self._init_output_files(bamfile)
         
         # Track processed reads to avoid duplicates
-        #processed_reads = set()
-        
-        # First pass: classify reads by barcode
         read_classifications = {}
         
         # Process each read in the BAM file
         read_count = 0
         
         try:
+            # First pass: classify reads by barcode
             for read in bamfile:
                 read_count += 1
                 
-                # Skip if we've already processed this read or its mate
+                # Skip if we've already processed this read
                 if read.query_name in read_classifications:
                     continue
-                
-                # Mark as processed
-                #processed_reads.add(read.query_name)
-                                       
-                if read.query_name in [ 'NS500545:142:HKC5TBGX7:3:22608:2084:4031' 'NS500545:142:HKC5TBGX7:1:11212:15037:18376' ]:
-                    print('found')
                 
                 # Get the read sequence
                 sequence = read.query_sequence
@@ -255,37 +235,19 @@ class BamExtractor(BarcodeExtractor):
                     continue
                 
                 # Search for barcodes
-                match, category = classify_read_by_first_match(
-                    sequence=sequence,
-                    barcodes=self.barcodes,
-                    max_mismatches=self.max_mismatches
-                )
+                match, category = self._classify_read(sequence)
                 
-                if read.query_name in [ 'NS500545:142:HKC5TBGX7:3:22608:2084:4031' 'NS500545:142:HKC5TBGX7:1:11212:15037:18376' ]:
-                    print('read.query_name', match, category, read.query_name)
-                    print(self.barcodes)
-                    print(read.query_sequence)
-
-
-                # Update statistics
+                # Update statistics and classification
                 if match:
-                    stats.update_barcode_match(match)
+                    stats.update_barcode_match(match, category)
                     read_classifications[read.query_name] = category
                 else:
                     stats.no_barcode_count += 1
-                
-                # Store the classification for later use
-                # Handle orientation merging
-                #if self.merge_orientations and match:
-                #    barcode_location = match.barcode.location.value
-                #    if barcode_location in ["5", "3"]:
-                #        read_classifications[read.query_name] = f"barcode{barcode_location}_orientAll"
-                #    else:
-                #        read_classifications[read.query_name] = "barcode_orientAll"
             
-            self.logger.info(f"First pass complete: classified {len(read_classifications)} reads")
-            bamfile.close()
+            #self.logger.info(f"First pass complete: classified {len(read_classifications)} reads")
+            
             # Reset for second pass
+            bamfile.close()
             bamfile = pysam.AlignmentFile(self.bam_file, "rb")
             read_count = 0
             
@@ -295,35 +257,68 @@ class BamExtractor(BarcodeExtractor):
                 
                 category = read_classifications.get(read.query_name, "noBarcode")
                 
-                #Write to output file
-                if category != "noBarcode":
-                    #print('im writing', read, 'to', output_files[category])
+                # Write to output file
+                if category in output_files:
                     output_files[category].write(read)
                 
         finally:
             # Close all file handles
             bamfile.close()
-            for k,f in  zip(output_files.keys(), output_files.values()):
-                print('output_files',k,f)
+            for category, f in output_files.items():
+                self.logger.debug(f"Closing output file for category {category}")
                 f.close()
         
-        #print(read_classifications)
         self.logger.info(f"Extraction complete: {stats.total_barcode_matches} matches in {stats.total_reads} reads")
+        
+        # Log detailed statistics
+        #self.logger.info("Match statistics by category:")
+        #for category, count in stats.matches_by_category.items():
+        #    self.logger.info(f"  {category}: {count} matches")
         
         # Sort and index all output files
         for category in output_files:
             file_path = self._get_output_path(category)
-            self.logger.info(f"Sorting and indexing {file_path}")
+            #self.logger.info(f"Sorting and indexing {file_path}")
             BamUtils.sort_and_index(file_path)
         
         # Save statistics
+        self.statistics = stats  # Store the statistics for reference
         self.save_statistics()
         
-        # Create merged files if requested
-        if self.merge_orientations:
-            self._create_merged_files()
-        
         return stats
+    
+    def _classify_read(self, sequence: str) -> Tuple[Optional[BarcodeMatch], str]:
+        """Classify a read sequence based on barcode matches.
+        
+        Args:
+            sequence: Read sequence to classify
+            
+        Returns:
+            Tuple of (best_match, category)
+        """
+        sequence = sequence.upper()
+        match, original_category = classify_read_by_first_match(
+            sequence=sequence,
+            barcodes=self.barcodes,
+            max_mismatches=self.max_mismatches
+        )
+        
+        # Adjust category based on single barcode mode or specific location mode
+        if match:
+            if self.single_barcode_mode:
+                # For single barcode mode, use simpler categories
+                if match.orientation == OrientationType.FORWARD:
+                    return match, "barcode_orientFR"
+                else:  # REVERSE_COMPLEMENT
+                    return match, "barcode_orientRC"
+            else:
+                # For multiple barcodes with locations, use the location in the category
+                location = match.barcode.location.value
+                if location in ["5", "3"]:
+                    orientation = match.orientation.value
+                    return match, f"barcode{location}_orient{orientation}"
+        
+        return match, "noBarcode"
     
     def _init_output_files(self, template_file: pysam.AlignmentFile) -> Dict[str, pysam.AlignmentFile]:
         """Initialize output BAM files.
@@ -338,6 +333,7 @@ class BamExtractor(BarcodeExtractor):
         
         for category in self.categories:
             output_path = self._get_output_path(category)
+            self.logger.debug(f"Creating output file for category {category}: {output_path}")
             output_files[category] = pysam.AlignmentFile(
                 output_path, "wb", template=template_file
             )
@@ -356,59 +352,8 @@ class BamExtractor(BarcodeExtractor):
         filename = f"{self.output_prefix}_{category}.bam"
         return os.path.join(self.output_dir, filename)
     
-    def _create_merged_files(self):
-        """Create merged files for combined categories."""
-        self.logger.info("Creating merged files for combined categories")
-        
-        # Check if we need to create a combined file for all barcodes
-        single_barcode_mode = all(b.location.value == "UNK" for b in self.barcodes)
-        barcode_locations = set(b.location.value for b in self.barcodes if b.location.value in ["5", "3"])
-        
-        # Merge orientation files for each barcode location
-        for location in barcode_locations:
-            out_file = os.path.join(
-                self.output_dir, 
-                f"{self.output_prefix}_combined_barcode{location}.bam"
-            )
-            
-            # Find all files for this barcode location
-            pattern = f"{self.output_prefix}_barcode{location}_orient*.bam"
-            
-            input_files = []
-            for f in os.listdir(self.output_dir):
-                if re.match(pattern, f):
-                    input_files.append(os.path.join(self.output_dir, f))
-            
-            if input_files:
-                self.logger.info(f"Merging {len(input_files)} files into {out_file}")
-                BamUtils.merge_bam_files(out_file, input_files)
-                BamUtils.sort_and_index(out_file)
-        
-        # Create a combined file for all barcodes if needed
-        if len(barcode_locations) > 1:
-            out_file = os.path.join(
-                self.output_dir, 
-                f"{self.output_prefix}_combined_barcodeAll.bam"
-            )
-            
-            # Find all barcode files
-            pattern = f"{self.output_prefix}_barcode[53]_orient*.bam"
-            
-            input_files = []
-            for f in os.listdir(self.output_dir):
-                if re.match(pattern, f):
-                    input_files.append(os.path.join(self.output_dir, f))
-            
-            if input_files:
-                self.logger.info(f"Merging {len(input_files)} files into {out_file}")
-                BamUtils.merge_bam_files(out_file, input_files)
-                BamUtils.sort_and_index(out_file)
-    
     def _find_barcode_matches(self, sequence: str) -> List[BarcodeMatch]:
         """Find barcode matches in a sequence.
-        
-        Note: This implementation uses classify_read_by_first_match instead of
-        finding all matches for efficiency.
         
         Args:
             sequence: The sequence to search in
@@ -416,13 +361,9 @@ class BamExtractor(BarcodeExtractor):
         Returns:
             List of BarcodeMatch objects
         """
-        match, _ = classify_read_by_first_match(
-            sequence=sequence,
-            barcodes=self.barcodes,
-            max_mismatches=self.max_mismatches
-        )
+        match, _ = self._classify_read(sequence)
         
         if match:
             return [match]
         else:
-            return [] 
+            return []

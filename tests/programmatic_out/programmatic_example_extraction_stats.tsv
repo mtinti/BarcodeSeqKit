@@ -1,0 +1,19 @@
+Metric	Value
+TotalReads	498
+TotalBarcodeMatches	18
+NoBarcodeCount	470
+MatchRate	0.0361
+
+Barcode	Count
+5	10
+3	8
+
+Orientation	Count
+FR	10
+RC	8
+
+Category	Count
+barcode5_orientFR	7
+barcode3_orientFR	3
+barcode3_orientRC	5
+barcode5_orientRC	3

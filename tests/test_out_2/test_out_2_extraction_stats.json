@@ -1,0 +1,20 @@
+{
+  "total_reads": 498,
+  "total_barcode_matches": 18,
+  "matches_by_barcode": {
+    "5": 10,
+    "3": 8
+  },
+  "matches_by_orientation": {
+    "FR": 10,
+    "RC": 8
+  },
+  "matches_by_category": {
+    "barcode5_orientFR": 7,
+    "barcode3_orientFR": 3,
+    "barcode3_orientRC": 5,
+    "barcode5_orientRC": 3
+  },
+  "no_barcode_count": 470,
+  "match_rate": 0.03614457831325301
+}

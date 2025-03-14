@@ -15,6 +15,7 @@ from typing import List, Dict, Tuple, Set, Optional, Union, Iterator, Any
 from pathlib import Path
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 import fnmatch
+from tqdm.auto import tqdm
 from BarcodeSeqKit.core import (
     BarcodeConfig, 
     BarcodeMatch, 
@@ -262,9 +263,9 @@ class FastqExtractor(BarcodeExtractor):
         # Prepare output categories based on barcodes
         self.categories = self._prepare_categories()
         
-        self.logger.info(f"Initialized FastqExtractor with {len(barcodes)} barcodes")
-        self.logger.info(f"FASTQ files: {fastq_files}")
-        self.logger.info(f"Output categories: {self.categories}")
+        #self.logger.info(f"Initialized FastqExtractor with {len(barcodes)} barcodes")
+        #self.logger.info(f"FASTQ files: {fastq_files}")
+        #self.logger.info(f"Output categories: {self.categories}")
     
     def _prepare_categories(self) -> List[str]:
         """Prepare output categories based on barcodes.
@@ -311,7 +312,7 @@ class FastqExtractor(BarcodeExtractor):
         Returns:
             Statistics from the extraction process
         """
-        self.logger.info("Starting barcode extraction from FASTQ files")
+        #self.logger.info("Starting barcode extraction from FASTQ files")
         
         # Initialize statistics
         stats = ExtractionStatistics()
@@ -330,7 +331,7 @@ class FastqExtractor(BarcodeExtractor):
             else:
                 self._process_single_fastq(output_manager, stats)
         
-        self.logger.info(f"Extraction complete: {stats.total_barcode_matches} matches in {stats.total_reads} reads")
+        #self.logger.info(f"Extraction complete: {stats.total_barcode_matches} matches in {stats.total_reads} reads")
         
         # Save statistics
         self.save_statistics()
@@ -349,17 +350,17 @@ class FastqExtractor(BarcodeExtractor):
             stats: Statistics object to update
         """
         r1_path, r2_path = self.fastq_files
-        self.logger.info(f"Processing paired FASTQ files: {r1_path}, {r2_path}")
+        #self.logger.info(f"Processing paired FASTQ files: {r1_path}, {r2_path}")
         
         read_count = 0
         
-        for read1, read2 in FastqHandler.fastq_pair_iterator(r1_path, r2_path):
+        for read1, read2 in tqdm(FastqHandler.fastq_pair_iterator(r1_path, r2_path)):
             read_count += 1
             stats.total_reads += 1
             
             # Update progress periodically
-            if read_count % 100000 == 0 and self.verbose:
-                self.logger.info(f"Processed {read_count} read pairs")
+            #if read_count % 100000 == 0 and self.verbose:
+            #    self.logger.info(f"Processed {read_count} read pairs")
             
             # Extract title, sequence, and quality
             title1, seq1, qual1 = read1
@@ -408,7 +409,7 @@ class FastqExtractor(BarcodeExtractor):
             if match or self.keep_unmatched:
                 output_manager.write_read_pair(category, read1, read2)
         
-        self.logger.info(f"Finished processing {read_count} read pairs")
+        #self.logger.info(f"Finished processing {read_count} read pairs")
     
     def _process_single_fastq(self, output_manager: FastqOutputManager, stats: ExtractionStatistics):
         """Process a single FASTQ file as if it were paired (for testing).

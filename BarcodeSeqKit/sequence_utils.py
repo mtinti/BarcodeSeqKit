@@ -198,6 +198,9 @@ def classify_read_by_first_match(
     """
     sequence = sequence.upper()
     
+    # Determine if we're in single barcode mode or multiple barcode mode
+    single_barcode_mode = len(barcodes) == 1 or all(b.location.value == "UNK" for b in barcodes)
+    
     # Check each barcode in order
     for barcode in barcodes:
         # Check forward orientation first
@@ -211,8 +214,12 @@ def classify_read_by_first_match(
                     position=match.start(),
                     sequence=match.group()
                 )
-                location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
-                return barcode_match, f"barcode{location}_orient{OrientationType.FORWARD.value}"
+                
+                if single_barcode_mode:
+                    return barcode_match, "barcode_orientFR"
+                else:
+                    location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
+                    return barcode_match, f"barcode{location}_orient{OrientationType.FORWARD.value}"
         else:
             # Fuzzy match with regex
             pattern = f"({barcode.sequence}){{e<={max_mismatches}}}"
@@ -225,8 +232,12 @@ def classify_read_by_first_match(
                     position=match.start(),
                     sequence=match.group()
                 )
-                location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
-                return barcode_match, f"barcode{location}_orient{OrientationType.FORWARD.value}"
+                
+                if single_barcode_mode:
+                    return barcode_match, "barcode_orientFR"
+                else:
+                    location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
+                    return barcode_match, f"barcode{location}_orient{OrientationType.FORWARD.value}"
         
         # Check reverse complement orientation
         rc_seq = barcode.reverse_complement
@@ -240,8 +251,12 @@ def classify_read_by_first_match(
                     position=match.start(),
                     sequence=match.group()
                 )
-                location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
-                return barcode_match, f"barcode{location}_orient{OrientationType.REVERSE_COMPLEMENT.value}"
+                
+                if single_barcode_mode:
+                    return barcode_match, "barcode_orientRC"
+                else:
+                    location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
+                    return barcode_match, f"barcode{location}_orient{OrientationType.REVERSE_COMPLEMENT.value}"
         else:
             # Fuzzy match with regex
             pattern = f"({rc_seq}){{e<={max_mismatches}}}"
@@ -254,8 +269,12 @@ def classify_read_by_first_match(
                     position=match.start(),
                     sequence=match.group()
                 )
-                location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
-                return barcode_match, f"barcode{location}_orient{OrientationType.REVERSE_COMPLEMENT.value}"
+                
+                if single_barcode_mode:
+                    return barcode_match, "barcode_orientRC"
+                else:
+                    location = barcode.location.value if barcode.location.value in ["5", "3"] else ""
+                    return barcode_match, f"barcode{location}_orient{OrientationType.REVERSE_COMPLEMENT.value}"
     
     # No match found
     return None, "noBarcode"

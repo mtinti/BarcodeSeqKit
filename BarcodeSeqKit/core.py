@@ -86,10 +86,16 @@ class ExtractionStatistics:
     total_barcode_matches: int = 0
     matches_by_barcode: Dict[str, int] = field(default_factory=dict)
     matches_by_orientation: Dict[str, int] = field(default_factory=dict)
+    matches_by_category: Dict[str, int] = field(default_factory=dict)  # New field for category stats
     no_barcode_count: int = 0
     
-    def update_barcode_match(self, barcode_match: BarcodeMatch) -> None:
-        """Update statistics based on a barcode match."""
+    def update_barcode_match(self, barcode_match: BarcodeMatch, category: Optional[str] = None) -> None:
+        """Update statistics based on a barcode match.
+        
+        Args:
+            barcode_match: The barcode match
+            category: The category (e.g., 'barcode5_orientFR'). If None, will be derived from the match.
+        """
         self.total_barcode_matches += 1
         
         # Update matches by barcode
@@ -103,6 +109,20 @@ class ExtractionStatistics:
         if orientation not in self.matches_by_orientation:
             self.matches_by_orientation[orientation] = 0
         self.matches_by_orientation[orientation] += 1
+        
+        # Derive category if not provided
+        if category is None:
+            # Try to derive a reasonable category
+            location = barcode_match.barcode.location.value
+            if location in ["5", "3"]:
+                category = f"barcode{location}_orient{orientation}"
+            else:
+                category = f"barcode_orient{orientation}"
+        
+        # Update matches by category
+        if category not in self.matches_by_category:
+            self.matches_by_category[category] = 0
+        self.matches_by_category[category] += 1
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert the statistics to a dictionary."""
@@ -111,6 +131,7 @@ class ExtractionStatistics:
             "total_barcode_matches": self.total_barcode_matches,
             "matches_by_barcode": self.matches_by_barcode,
             "matches_by_orientation": self.matches_by_orientation,
+            "matches_by_category": self.matches_by_category,
             "no_barcode_count": self.no_barcode_count,
             "match_rate": (self.total_barcode_matches / self.total_reads) if self.total_reads > 0 else 0
         }
@@ -142,6 +163,11 @@ class ExtractionStatistics:
             f.write("\nOrientation\tCount\n")
             for orientation, count in stats_dict['matches_by_orientation'].items():
                 f.write(f"{orientation}\t{count}\n")
+            
+            # Write category-specific statistics
+            f.write("\nCategory\tCount\n")
+            for category, count in stats_dict['matches_by_category'].items():
+                f.write(f"{category}\t{count}\n")
 
 # %% ../nbs/00_core.ipynb 12
 class BarcodeExtractor(ABC):

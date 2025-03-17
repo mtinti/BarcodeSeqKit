@@ -1,0 +1,16 @@
+{
+  "total_reads": 247,
+  "total_barcode_matches": 18,
+  "matches_by_barcode": {
+    "5prime": 10,
+    "3prime": 8
+  },
+  "matches_by_orientation": {
+    "FR": 18
+  },
+  "matches_by_category": {
+    "barcode5_orientFR": 10,
+    "barcode3_orientFR": 8
+  },
+  "match_rate": 0.0728744939271255
+}

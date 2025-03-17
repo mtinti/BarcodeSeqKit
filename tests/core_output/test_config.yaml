@@ -1,0 +1,17 @@
+barcodes:
+- description: 5' barcode for phenotyping experiment
+  location: '5'
+  name: 5prime
+  reverse_complement: GCCTCGCGA
+  sequence: TCGCGAGGC
+- description: 3' barcode for phenotyping experiment
+  location: '3'
+  name: 3prime
+  reverse_complement: CCGGCCGGCC
+  sequence: GGCCGGCCGG
+log_file: null
+max_mismatches: 0
+output_dir: ../tests/core_output
+output_prefix: test_output
+search_softclipped: false
+verbose: true

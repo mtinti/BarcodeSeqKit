@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['reverse_complement', 'hamming_distance', 'find_barcode_matches', 'find_best_barcode_match',
-           'classify_read_by_first_match', 'get_output_category', 'prepare_categories', 'extract_softclipped_region']
+           'classify_read_by_first_match', 'get_output_category']
 
 # %% ../nbs/01_sequence_utils.ipynb 4
 import re
@@ -298,84 +298,4 @@ def get_output_category(
         return f"barcode_orient{match.orientation.value}"
     else:
         location = match.barcode.location.value
-        if location in ["5", "3"]:
-            return f"barcode{location}_orient{match.orientation.value}"
-        else:
-            return f"barcode_orient{match.orientation.value}"
-
-def prepare_categories(barcodes: List[BarcodeConfig], keep_unmatched: bool = True) -> List[str]:
-    """Prepare output categories based on barcodes.
-    
-    Args:
-        barcodes: List of barcode configurations
-        keep_unmatched: Whether to keep reads without barcodes
-        
-    Returns:
-        List of category names
-    """
-    categories = []
-    
-    # Determine if we're in single barcode mode
-    single_barcode_mode = len(barcodes) == 1 or all(b.location.value == "UNK" for b in barcodes)
-    
-    if single_barcode_mode:
-        categories.extend(["barcode_orientFR", "barcode_orientRC"])
-    else:
-        # Multiple barcodes with specific locations (5' and/or 3')
-        for barcode in barcodes:
-            if barcode.location.value in ["5", "3"]:
-                categories.extend([
-                    f"barcode{barcode.location.value}_orientFR",
-                    f"barcode{barcode.location.value}_orientRC"
-                ])
-    
-    # Add no barcode category
-    if keep_unmatched:
-        categories.append("noBarcode")
-    
-    return categories
-
-# %% ../nbs/01_sequence_utils.ipynb 15
-def extract_softclipped_region(read) -> str:
-    """
-    Extracts softclipped regions from an alignment.
-    For + strand: gets softclipped region at 5' end of read
-    For - strand: gets softclipped region at 3' end of read
-    
-    Args:
-        read: A pysam.AlignedSegment object
-    
-    Returns:
-        str: Softclipped sequence or empty string if none exists
-    """
-    # Check if the read is unmapped
-    if read.is_unmapped:
-        return ""
-    
-    # Get the CIGAR operations
-    cigar = read.cigartuples
-    if not cigar:
-        return ""
-    
-    # Determine if read is on reverse strand
-    is_reverse = read.is_reverse
-    
-    # For + strand (forward): get softclip at 5' end (first operation)
-    # For - strand (reverse): get softclip at 3' end (last operation)
-    if is_reverse:
-        # We want the last operation for reverse strand
-        last_op = cigar[-1]
-        if last_op[0] == 4:  # 4 is the CIGAR code for softclip
-            # Get softclipped region at 3' end (last part of sequence)
-            soft_clip_length = last_op[1]
-            return read.query_sequence[-soft_clip_length:]
-    else:
-        # We want the first operation for forward strand
-        first_op = cigar[0]
-        if first_op[0] == 4:  # 4 is the CIGAR code for softclip
-            # Get softclipped region at 5' end (first part of sequence)
-            soft_clip_length = first_op[1]
-            return read.query_sequence[:soft_clip_length]
-    
-    # No softclipped region found based on criteria
-    return ""
+        return f"barcode{location}_orient{match.orientation.value}"

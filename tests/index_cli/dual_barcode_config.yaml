@@ -1,0 +1,17 @@
+barcodes:
+- description: 5' barcode from command line
+  location: '5'
+  name: 5prime
+  reverse_complement: GGCCCTTAAGGAGTCAG
+  sequence: CTGACTCCTTAAGGGCC
+- description: 3' barcode from command line
+  location: '3'
+  name: 3prime
+  reverse_complement: GCCGGCCTCAGTTA
+  sequence: TAACTGAGGCCGGC
+log_file: null
+max_mismatches: 0
+output_dir: ../tests/index_cli
+output_prefix: dual_barcode
+search_softclipped: false
+verbose: false

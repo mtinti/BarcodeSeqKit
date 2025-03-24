@@ -235,6 +235,30 @@ The statistics include: - Total number of reads processed - Total
 barcode matches found - Match counts by barcode type - Match counts by
 orientation - Match counts by category - Overall match rate
 
+## Statistics-Only Mode
+
+BarcodeSeqKit now supports a “statistics-only” mode that processes files
+and generates detailed statistics without writing output sequence files.
+This feature is particularly useful for:
+
+- Quickly analyzing barcode distributions in large datasets
+- Performing QC checks before committing to full processing
+- Estimating barcode frequencies without using additional disk space
+- Benchmarking and optimization tasks
+
+### Command-line Usage
+
+To use statistics-only mode from the command line, add the
+`--only-stats` flag:
+
+``` bash
+barcodeseqkit --bam sample.bam \
+              --barcode5 CTGACTCCTTAAGGGCC \
+              --output-prefix quick_stats \
+              --output-dir results \
+              --only-stats
+```
+
 BarcodeSeqKit has a clean, modular design:
 
 1.  **Core** (`00_core.ipynb`): Data structures and configuration
@@ -309,22 +333,22 @@ else:
     print(f"Test file not found: {test_bam}")
 ```
 
-    2025-03-17 12:19:54,956 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
-    2025-03-17 12:19:54,958 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']
+    2025-03-24 14:06:24,292 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
+    2025-03-24 14:06:24,293 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']
 
     Processing ../tests/test.bam
 
     Classifying reads:   0%|          | 0/498 [00:00<?, ?it/s]
 
-    2025-03-17 12:19:55,013 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads
+    2025-03-24 14:06:24,340 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads
 
     Writing reads:   0%|          | 0/498 [00:00<?, ?it/s]
 
-    2025-03-17 12:19:55,049 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientFR.bam
-    2025-03-17 12:19:55,081 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientRC.bam
-    2025-03-17 12:19:55,095 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientFR.bam
-    2025-03-17 12:19:55,106 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientRC.bam
-    2025-03-17 12:19:55,136 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_noBarcode.bam
+    2025-03-24 14:06:24,411 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientFR.bam
+    2025-03-24 14:06:24,424 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientRC.bam
+    2025-03-24 14:06:24,433 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientFR.bam
+    2025-03-24 14:06:24,442 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientRC.bam
+    2025-03-24 14:06:24,450 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_noBarcode.bam
 
 
     Results summary:
@@ -335,6 +359,36 @@ else:
       3prime: 8 matches
       Orientation FR: 10 matches
       Orientation RC: 8 matches
+
+``` python
+config = BarcodeExtractorConfig(
+    barcodes=barcodes,
+    output_prefix="quick_stats",
+    output_dir="../tests/quick_stats",
+    max_mismatches=0,
+    verbose=True,
+    write_output_files=False  # Skip writing sequence files
+)
+
+# Process BAM file and get statistics only
+stats = process_bam_file(config, "../tests/test.bam")
+
+# Print summary
+print(f"Total reads: {stats.total_reads}")
+print(f"Total barcode matches: {stats.total_barcode_matches}")
+print(f"Match rate: {stats.total_barcode_matches / stats.total_reads * 100:.2f}%")
+```
+
+    2025-03-24 14:07:19,200 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
+    2025-03-24 14:07:19,202 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']
+
+    Classifying reads:   0%|          | 0/498 [00:00<?, ?it/s]
+
+    2025-03-24 14:07:19,259 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads
+
+    Total reads: 498
+    Total barcode matches: 18
+    Match rate: 3.61%
 
 ``` python
 !barcodeseqkit --bam ../tests/test.bam \

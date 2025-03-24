@@ -82,7 +82,7 @@ combination: - `results/dual_barcode_barcode5_orientFR.bam` -
 ``` bash
 barcodeseqkit --fastq1 tests/test.1.fastq.gz \
               --fastq2 tests/test.2.fastq.gz \
-              --barcode5 CTGACTCCTTAAGGGCC \
+              --barcode CTGACTCCTTAAGGGCC \
               --output-prefix fastq_extraction \
               --search-both-reads
 ```

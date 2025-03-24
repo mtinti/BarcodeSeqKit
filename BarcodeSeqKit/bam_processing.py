@@ -200,13 +200,14 @@ def process_bam_file(
     # Open the input BAM file
     bamfile = pysam.AlignmentFile(bam_file, "rb")
     
-    # Initialize output BAM files
+    # Initialize output BAM files only if we're writing output
     output_files = {}
-    for category in categories:
-        output_path = get_output_path(config.output_prefix, config.output_dir, category)
-        output_files[category] = pysam.AlignmentFile(
-            output_path, "wb", template=bamfile
-        )
+    if config.write_output_files:
+        for category in categories:
+            output_path = get_output_path(config.output_prefix, config.output_dir, category)
+            output_files[category] = pysam.AlignmentFile(
+                output_path, "wb", template=bamfile
+            )
     
     # Track processed reads to avoid duplicates
     read_classifications = {}
@@ -237,17 +238,29 @@ def process_bam_file(
         
         logger.info(f"First pass complete: classified {len(read_classifications)} reads")
         
-        # Reset for second pass
-        bamfile.close()
-        bamfile = pysam.AlignmentFile(bam_file, "rb")
-        
-        # Second pass: write reads to output files
-        for read in tqdm(bamfile, desc="Writing reads", total=total_reads):
-            category = read_classifications.get(read.query_name, "noBarcode")
+        # Only perform second pass if writing output files
+        if config.write_output_files:
+            # Reset for second pass
+            bamfile.close()
+            bamfile = pysam.AlignmentFile(bam_file, "rb")
             
-            # Write to output file
-            if category in output_files:
-                output_files[category].write(read)
+            # Second pass: write reads to output files
+            for read in tqdm(bamfile, desc="Writing reads", total=total_reads):
+                category = read_classifications.get(read.query_name, "noBarcode")
+                
+                # Write to output file
+                if category in output_files:
+                    output_files[category].write(read)
+            
+            # Close and sort output files
+            for f in output_files.values():
+                f.close()
+            
+            # Sort and index all output files
+            for category in categories:
+                file_path = get_output_path(config.output_prefix, config.output_dir, category)
+                logger.info(f"Sorting and indexing {file_path}")
+                BamUtils.sort_and_index(file_path)
     
     finally:
         # Close all file handles
@@ -255,14 +268,14 @@ def process_bam_file(
         for f in output_files.values():
             f.close()
     
-    # Sort and index all output files
-    for category in categories:
-        file_path = get_output_path(config.output_prefix, config.output_dir, category)
-        logger.info(f"Sorting and indexing {file_path}")
-        BamUtils.sort_and_index(file_path)
-    
     # Save statistics
-    save_statistics(stats, config.output_prefix, config.output_dir)
+    if config.write_output_files:
+        save_statistics(stats, config.output_prefix, config.output_dir)
+    else:
+        # When not writing sequence files, still write statistics
+        # (Optionally create output directory if it doesn't exist)
+        os.makedirs(config.output_dir, exist_ok=True)
+        save_statistics(stats, config.output_prefix, config.output_dir)
     
     return stats
 

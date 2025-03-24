@@ -11,8 +11,8 @@ barcodes:
   sequence: TAACTGAGGCCGGC
 log_file: null
 max_mismatches: 0
-output_dir: ../tests/cli_output
+output_dir: ../tests/cli_output_only_stats
 output_prefix: test_cli_out
 search_softclipped: true
 verbose: true
-write_output_files: true
+write_output_files: false

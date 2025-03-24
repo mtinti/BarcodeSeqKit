@@ -121,7 +121,8 @@ class FastqOutputManager:
         output_prefix: str,
         output_dir: str,
         categories: List[str],
-        compress: bool = True
+        compress: bool = True,
+        write_output: bool = True
     ):
         """Initialize the output manager.
         
@@ -130,18 +131,21 @@ class FastqOutputManager:
             output_dir: Directory for output files
             categories: List of barcode categories (e.g., "barcode5_orientFR")
             compress: Whether to compress output files
+            write_output: Whether to write output files at all
         """
         self.output_prefix = output_prefix
         self.output_dir = output_dir
         self.categories = categories
         self.compress = compress
+        self.write_output = write_output
         self.file_handles = {}
         
-        # Create output directory if it doesn't exist
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Initialize file handles for each category
-        self._init_file_handles()
+        # Create output directory if it doesn't exist and we're writing files
+        if self.write_output:
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Initialize file handles for each category
+            self._init_file_handles()
     
     def _init_file_handles(self):
         """Initialize file handles for all categories."""
@@ -188,8 +192,7 @@ class FastqOutputManager:
         self, 
         category: str, 
         read1: Tuple[str, str, str], 
-        read2: Tuple[str, str, str]
-    ):
+        read2: Tuple[str, str, str] ):
         """Write a read pair to the appropriate output files.
         
         Args:
@@ -197,6 +200,10 @@ class FastqOutputManager:
             read1: Read 1 tuple (title, sequence, quality)
             read2: Read 2 tuple (title, sequence, quality)
         """
+        # Skip writing if not required
+        if not self.write_output:
+            return
+            
         title1, seq1, qual1 = read1
         title2, seq2, qual2 = read2
         
@@ -206,7 +213,8 @@ class FastqOutputManager:
         # Write in FastqGeneralIterator-compatible format
         r1_handle.write(f"@{title1}\n{seq1}\n+\n{qual1}\n")
         r2_handle.write(f"@{title2}\n{seq2}\n+\n{qual2}\n")
-    
+        
+        
     def close(self):
         """Close all file handles."""
         for handle in self.file_handles.values():
@@ -305,7 +313,8 @@ def process_fastq_files(
         output_prefix=config.output_prefix,
         output_dir=config.output_dir,
         categories=categories,
-        compress=compress_output
+        compress=compress_output,
+        write_output=config.write_output_files  # Pass the flag
     ) as output_manager:
         
         if paired_end:
@@ -396,6 +405,9 @@ def process_fastq_files(
             logger.info(f"Finished processing {read_count} reads")
     
     # Save statistics
+    # When not writing sequence files, create output directory if it doesn't exist
+    if not config.write_output_files:
+        os.makedirs(config.output_dir, exist_ok=True)
     save_statistics(stats, config.output_prefix, config.output_dir)
     
     return stats

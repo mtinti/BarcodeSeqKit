@@ -146,9 +146,7 @@ stats = process_fastq_files(
 )
 ```
 
-``` python
 ## Key Concepts
-```
 
 ### Barcode Types
 
@@ -218,6 +216,11 @@ Then use it with:
 ``` bash
 barcodeseqkit --bam test.bam --barcode-config my_barcodes.yaml --output-prefix config_extraction
 ```
+
+> In BarcodeSeqKit, when multiple barcodes are provided, the program
+> uses an efficient approach: it parses the input file(s) only once
+> while searching for all barcodes simultaneously during that single
+> pass.
 
 ## Output Files and Statistics
 

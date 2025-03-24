@@ -1,0 +1,32 @@
+package:
+  name: BarcodeSeqKit
+  version: "0.0.3"
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - python
+    - biopython
+    - pandas
+    - tqdm 
+    - fastcore 
+    - pysam 
+    - regex
+
+test:
+  imports:
+    - BarcodeSeqKit
+
+about:
+  home: https://github.com/mtinti/BarcodeSeqKit
+  license: MIT  # Your license
+  summary: "Brief description of your package"

@@ -1,6 +1,6 @@
 package:
-  name: BarcodeSeqKit
-  version: "0.0.3"
+  name: barcodeseqkit
+  version: "0.0.4"
 
 source:
   path: ..
@@ -21,6 +21,8 @@ requirements:
     - fastcore 
     - pysam 
     - regex
+    - samtools
+    - pyyaml
 
 test:
   imports:

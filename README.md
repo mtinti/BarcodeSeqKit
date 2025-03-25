@@ -20,6 +20,12 @@ BarcodeSeqKit
 - **Detailed statistics**: Get comprehensive reports on barcode matches
   and distribution
 
+## Regular Expression Support in Barcode Matching
+
+> BarcodeSeqKit uses Python’s regular expression engine (`re` module)
+> for exact barcode matching, which means you can leverage the full
+> power of regular expressions in your barcode patterns.
+
 ## Installation
 
 You can install BarcodeSeqKit using pip:
@@ -89,6 +95,20 @@ barcodeseqkit --fastq1 tests/test.1.fastq.gz \
 
 This processes paired FASTQ files and creates output FASTQ files for
 each barcode category.
+
+### Using Regular Expression Patterns
+
+> Instead of specifying a fixed barcode sequence, you can provide a
+> regular expression pattern:
+
+``` python
+# Define a barcode with ambiguous positions
+barcode_config = BarcodeConfig(
+    sequence="ACGT[AT]GC[GC].TT",
+    location=BarcodeLocationType.FIVE_PRIME,
+    name="5prime_variable"
+)
+```
 
 ### Python API Usage
 

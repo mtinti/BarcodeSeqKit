@@ -495,52 +495,6 @@ docker run --rm \
   --output-dir /data/results
 ```
 
-## Singularity Usage
-
-### Prerequisites
-
-- [Singularity](https://docs.sylabs.io/guides/latest/user-guide/)
-  installed on your system
-
-### Converting from Docker to Singularity
-
-Convert the Docker image to a Singularity image:
-
-``` bash
-singularity pull barcodeseqkit.sif docker://mtinti/barcodeseqkit:0.0.4
-```
-
-### Using the Included Test File
-
-``` bash
-# Create a directory for the results
-mkdir -p results
-
-# Run Singularity with the included test file
-singularity exec \
-  --bind $(pwd)/results:/output \
-  barcodeseqkit.sif \
-  barcodeseqkit --bam /app/tests/test.bam \
-               --barcode5 CTGACTCCTTAAGGGCC \
-               --barcode3 TAACTGAGGCCGGC \
-               --output-prefix test_extraction \
-               --output-dir /output \
-               --search-softclipped \
-               --verbose
-```
-
-### Processing Your Own Data with Singularity
-
-``` bash
-singularity exec \
-  --bind /path/to/your/data:/data \
-  barcodeseqkit.sif \
-  barcodeseqkit --bam /data/your_sample.bam \
-                --barcode ACGTACGT \
-                --output-prefix extraction \
-                --output-dir /data/results
-```
-
 ## Conclusion
 
 BarcodeSeqKit provides a streamlined, user-friendly approach to barcode

@@ -434,6 +434,113 @@ print(f"Match rate: {stats.total_barcode_matches / stats.total_reads * 100:.2f}%
     2025-03-17 12:18:29,894 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_noBarcode.bam
     Extraction complete
 
+# Using BarcodeSeqKit with Containers
+
+BarcodeSeqKit is available as a containerized application, which allows
+you to run it without installing any dependencies on your system. This
+guide explains how to use BarcodeSeqKit with Docker and Singularity
+containers.
+
+## Docker Usage
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed on your system
+
+### Pulling the Docker Image
+
+``` bash
+docker pull mtinti/barcodeseqkit:0.0.4
+```
+
+### Basic Usage with the Included Test File
+
+The container includes a test BAM file at `/app/tests/test.bam`. You can
+run BarcodeSeqKit on this test file and save the results to your local
+machine:
+
+``` bash
+# Create a directory for the results
+mkdir -p results
+
+# Run the container with the included test file
+docker run --rm \
+  -v $(pwd)/results:/output \
+  mtinti/barcodeseqkit:0.0.4 \
+  --bam /app/tests/test.bam \
+  --barcode5 CTGACTCCTTAAGGGCC \
+  --barcode3 TAACTGAGGCCGGC \
+  --output-prefix test_extraction \
+  --output-dir /output \
+  --search-softclipped \
+  --verbose
+```
+
+This command: - Uses the test BAM file already included in the
+container - Mounts your local `results` directory to `/output` inside
+the container - Extracts reads matching the specified 5’ and 3’
+barcodes - Saves the results in your local `results` directory
+
+### Processing Your Own Data
+
+To process your own data files:
+
+``` bash
+docker run --rm \
+  -v /path/to/your/data:/data \
+  mtinti/barcodeseqkit:0.0.4 \
+  --bam /data/your_sample.bam \
+  --barcode ACGTACGT \
+  --output-prefix extraction \
+  --output-dir /data/results
+```
+
+## Singularity Usage
+
+### Prerequisites
+
+- [Singularity](https://docs.sylabs.io/guides/latest/user-guide/)
+  installed on your system
+
+### Converting from Docker to Singularity
+
+Convert the Docker image to a Singularity image:
+
+``` bash
+singularity pull barcodeseqkit.sif docker://mtinti/barcodeseqkit:0.0.4
+```
+
+### Using the Included Test File
+
+``` bash
+# Create a directory for the results
+mkdir -p results
+
+# Run Singularity with the included test file
+singularity exec \
+  --bind $(pwd)/results:/output \
+  barcodeseqkit.sif \
+  barcodeseqkit --bam /app/tests/test.bam \
+               --barcode5 CTGACTCCTTAAGGGCC \
+               --barcode3 TAACTGAGGCCGGC \
+               --output-prefix test_extraction \
+               --output-dir /output \
+               --search-softclipped \
+               --verbose
+```
+
+### Processing Your Own Data with Singularity
+
+``` bash
+singularity exec \
+  --bind /path/to/your/data:/data \
+  barcodeseqkit.sif \
+  barcodeseqkit --bam /data/your_sample.bam \
+                --barcode ACGTACGT \
+                --output-prefix extraction \
+                --output-dir /data/results
+```
+
 ## Conclusion
 
 BarcodeSeqKit provides a streamlined, user-friendly approach to barcode

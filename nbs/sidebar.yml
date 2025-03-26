@@ -1,0 +1,9 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_core.ipynb
+      - 01_sequence_utils.ipynb
+      - 02_bam_processing.ipynb
+      - 03_fastq_processing.ipynb
+      - 04_cli.ipynb

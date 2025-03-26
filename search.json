@@ -1,0 +1,462 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "BarcodeSeqKit",
+    "section": "",
+    "text": "Simple yet powerful: Extract barcodes from BAM or FASTQ files with minimal code\nSupport for both file types: Process BAM files (including softclipped regions) and FASTQ files (including paired-end data)\nFlexible barcode options: Use single barcodes or specific 5’/3’ combinations\nOrientation detection: Identify barcodes in both forward and reverse complement orientations\nFuzzy matching: Configure allowable mismatches for barcode detection\nSpecialized functions: Search in softclipped regions of BAM alignments or both reads in paired FASTQ data\nDetailed statistics: Get comprehensive reports on barcode matches and distribution",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#regular-expression-support-in-barcode-matching",
+    "href": "index.html#regular-expression-support-in-barcode-matching",
+    "title": "BarcodeSeqKit",
+    "section": "Regular Expression Support in Barcode Matching",
+    "text": "Regular Expression Support in Barcode Matching\n\nBarcodeSeqKit uses Python’s regular expression engine (re module) for exact barcode matching, which means you can leverage the full power of regular expressions in your barcode patterns.",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "BarcodeSeqKit",
+    "section": "Installation",
+    "text": "Installation\nYou can install BarcodeSeqKit using pip:\npip install barcodeseqkit\nOr directly from the GitHub repository:\npip install git+https://github.com/username/BarcodeSeqKit.git\n\nQuick Start\nLet’s dive right in with some common use cases!\n\n\nCommand-line Usage\nBarcodeSeqKit provides a simple command-line interface that makes it easy to extract barcodes without writing any code.\n\nExtract a Single Barcode\nbarcodeseqkit --bam tests/test.bam \\\n              --barcode CTGACTCCTTAAGGGCC \\\n              --output-prefix single_barcode \\\n              --output-dir results\nThis command extracts reads containing the specified barcode (in either forward or reverse complement orientation) and creates: - results/single_barcode_barcode_orientFR.bam: Forward orientation matches - results/single_barcode_barcode_orientRC.bam: Reverse complement matches - results/single_barcode_extraction_stats.json: Detailed statistics in JSON format - results/single_barcode_extraction_stats.tsv: Detailed statistics in TSV format\n\n\nExtract 5’ and 3’ Barcodes\nbarcodeseqkit --bam tests/test.bam \\\n              --barcode5 CTGACTCCTTAAGGGCC \\\n              --barcode3 TAACTGAGGCCGGC \\\n              --output-prefix dual_barcode \\\n              --output-dir results\nThis creates separate files for each barcode and orientation combination: - results/dual_barcode_barcode5_orientFR.bam - results/dual_barcode_barcode5_orientRC.bam - results/dual_barcode_barcode3_orientFR.bam - results/dual_barcode_barcode3_orientRC.bam\n\n\nProcess Paired FASTQ Files\nbarcodeseqkit --fastq1 tests/test.1.fastq.gz \\\n              --fastq2 tests/test.2.fastq.gz \\\n              --barcode CTGACTCCTTAAGGGCC \\\n              --output-prefix fastq_extraction \\\n              --search-both-reads\nThis processes paired FASTQ files and creates output FASTQ files for each barcode category.\n\n\n\nUsing Regular Expression Patterns\n\nInstead of specifying a fixed barcode sequence, you can provide a regular expression pattern:\n\n# Define a barcode with ambiguous positions\nbarcode_config = BarcodeConfig(\n    sequence=\"ACGT[AT]GC[GC].TT\",\n    location=BarcodeLocationType.FIVE_PRIME,\n    name=\"5prime_variable\"\n)\n\n\nPython API Usage\nBarcodeSeqKit’s Python API is designed to be intuitive and straightforward:\nfrom BarcodeSeqKit.core import BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig\nfrom BarcodeSeqKit.bam_processing import process_bam_file\n\n# Define barcodes\nbarcodes = [\n    BarcodeConfig(\n        sequence=\"TAACTGAGGCCGGC\",\n        location=BarcodeLocationType.THREE_PRIME,\n        name=\"3prime\"\n    ),\n    BarcodeConfig(\n        sequence=\"CTGACTCCTTAAGGGCC\",\n        location=BarcodeLocationType.FIVE_PRIME,\n        name=\"5prime\"\n    )\n]\n\n# Create configuration\nconfig = BarcodeExtractorConfig(\n    barcodes=barcodes,\n    output_prefix=\"my_extraction\",\n    output_dir=\"./results\",\n    max_mismatches=0,\n    search_softclipped=True,\n    verbose=True\n)\n\n# Process BAM file\nstats = process_bam_file(config, \"tests/test.bam\")\n\n# Report results\nprint(f\"Processed {stats.total_reads} reads\")\nprint(f\"Found {stats.total_barcode_matches} barcode matches\")\nor FASTQ files:\nfrom BarcodeSeqKit.fastq_processing import process_fastq_files\n\n# Use the same config as above\nfastq_files = [\"tests/test.1.fastq.gz\", \"tests/test.2.fastq.gz\"]\nstats = process_fastq_files(\n    config=config,\n    fastq_files=fastq_files,\n    compress_output=True,\n    search_both_reads=True\n)",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#key-concepts",
+    "href": "index.html#key-concepts",
+    "title": "BarcodeSeqKit",
+    "section": "Key Concepts",
+    "text": "Key Concepts\n\nBarcode Types\nBarcodeSeqKit supports three types of barcode configurations:\n\nGeneric barcodes: Use these when you just want to find a specific sequence regardless of location\n5’ barcodes: Use these when the barcode is expected at the 5’ end of the sequence\n3’ barcodes: Use these when the barcode is expected at the 3’ end of the sequence",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#barcode-orientations",
+    "href": "index.html#barcode-orientations",
+    "title": "BarcodeSeqKit",
+    "section": "Barcode Orientations",
+    "text": "Barcode Orientations\nFor each barcode, BarcodeSeqKit tracks two possible orientations:\n\nForward (FR): The barcode appears in its specified sequence\nReverse Complement (RC): The barcode appears as its reverse complement",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#softclipped-regions",
+    "href": "index.html#softclipped-regions",
+    "title": "BarcodeSeqKit",
+    "section": "Softclipped Regions",
+    "text": "Softclipped Regions\nWhen working with BAM files, the --search-softclipped option examines only the softclipped portions of reads:\n\nFor forward strand reads (+): Examines the 5’ softclipped region\nFor reverse strand reads (-): Examines the 3’ softclipped region\n\nThis is especially useful for splice leader sequences in trypanosomatids or where barcodes are clipped during alignment.",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#advanced-options",
+    "href": "index.html#advanced-options",
+    "title": "BarcodeSeqKit",
+    "section": "Advanced Options",
+    "text": "Advanced Options\n\nCommand-Line Arguments\nBarcodeSeqKit offers a range of options to customize your extraction:\n\n\n\n\n\n\n\nOption\nDescription\n\n\n\n\n--max-mismatches N\nAllow up to N mismatches in barcode detection\n\n\n--search-softclipped\nSearch in softclipped regions (BAM only)\n\n\n--search-both-reads\nLook for barcodes in both reads of paired FASTQ files\n\n\n--no-compress\nDisable compression for FASTQ output files\n\n\n--verbose\nEnable detailed logging\n\n\n\nFor a complete list, run barcodeseqkit --help.\n\n\nBarcode Configuration Files\nFor complex projects with multiple barcodes, you can use a YAML configuration file:\nbarcodes:\n  - sequence: CTGACTCCTTAAGGGCC\n    location: 5\n    name: 5prime\n    description: 5' barcode for experiment X\n  - sequence: TAACTGAGGCCGGC\n    location: 3\n    name: 3prime\n    description: 3' barcode for experiment X\nThen use it with:\nbarcodeseqkit --bam test.bam --barcode-config my_barcodes.yaml --output-prefix config_extraction\n\nIn BarcodeSeqKit, when multiple barcodes are provided, the program uses an efficient approach: it parses the input file(s) only once while searching for all barcodes simultaneously during that single pass.",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#output-files-and-statistics",
+    "href": "index.html#output-files-and-statistics",
+    "title": "BarcodeSeqKit",
+    "section": "Output Files and Statistics",
+    "text": "Output Files and Statistics\nBarcodeSeqKit generates:\n\nCategorized output files: BAM or FASTQ files containing reads matching specific barcode/orientation combinations\nStatistics in JSON format: Detailed machine-readable statistics\nStatistics in TSV format: Human-readable tabular statistics\n\nThe statistics include: - Total number of reads processed - Total barcode matches found - Match counts by barcode type - Match counts by orientation - Match counts by category - Overall match rate",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#statistics-only-mode",
+    "href": "index.html#statistics-only-mode",
+    "title": "BarcodeSeqKit",
+    "section": "Statistics-Only Mode",
+    "text": "Statistics-Only Mode\nBarcodeSeqKit now supports a “statistics-only” mode that processes files and generates detailed statistics without writing output sequence files. This feature is particularly useful for:\n\nQuickly analyzing barcode distributions in large datasets\nPerforming QC checks before committing to full processing\nEstimating barcode frequencies without using additional disk space\nBenchmarking and optimization tasks\n\n\nCommand-line Usage\nTo use statistics-only mode from the command line, add the --only-stats flag:\nbarcodeseqkit --bam sample.bam \\\n              --barcode5 CTGACTCCTTAAGGGCC \\\n              --output-prefix quick_stats \\\n              --output-dir results \\\n              --only-stats\nBarcodeSeqKit has a clean, modular design:\n\nCore (00_core.ipynb): Data structures and configuration\nSequence Utilities (01_sequence_utils.ipynb): Barcode detection algorithms\nBAM Processing (02_bam_processing.ipynb): BAM file handling\nFASTQ Processing (03_fastq_processing.ipynb): FASTQ file handling\nCommand-Line Interface (04_cli.ipynb): Argument parsing and execution",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#real-world-example",
+    "href": "index.html#real-world-example",
+    "title": "BarcodeSeqKit",
+    "section": "Real-World Example",
+    "text": "Real-World Example\nLet’s walk through a practical example of extracting barcodes from the test data included with BarcodeSeqKit:\n\nfrom BarcodeSeqKit.core import BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig\nfrom BarcodeSeqKit.bam_processing import process_bam_file\nimport os\n\n# Define barcodes that we know are in the test data\nbarcodes = [\n    BarcodeConfig(\n        sequence=\"TAACTGAGGCCGGC\",\n        location=BarcodeLocationType.THREE_PRIME,\n        name=\"3prime\"\n    ),\n    BarcodeConfig(\n        sequence=\"CTGACTCCTTAAGGGCC\",\n        location=BarcodeLocationType.FIVE_PRIME,\n        name=\"5prime\"\n    )\n]\n\n# Create configuration\noutput_dir = \"../tests/index_api\"\nos.makedirs(output_dir, exist_ok=True)\n\nconfig = BarcodeExtractorConfig(\n    barcodes=barcodes,\n    output_prefix=\"example_run\",\n    output_dir=output_dir,\n    max_mismatches=0,\n    search_softclipped=True,\n    verbose=True\n)\n\n# Process the BAM file (if it exists)\ntest_bam = \"../tests/test.bam\"\nif os.path.exists(test_bam):\n    print(f\"Processing {test_bam}\")\n    stats = process_bam_file(config, test_bam)\n    \n    # Print summary statistics\n    print(f\"\\nResults summary:\")\n    print(f\"Total reads: {stats.total_reads}\")\n    print(f\"Total barcode matches: {stats.total_barcode_matches}\")\n    \n    if stats.total_reads &gt; 0:\n        match_rate = (stats.total_barcode_matches / stats.total_reads) * 100\n        print(f\"Match rate: {match_rate:.2f}%\")\n    \n    # Print barcode-specific statistics\n    for barcode_name, count in stats.matches_by_barcode.items():\n        print(f\"  {barcode_name}: {count} matches\")\n    \n    # Print orientation-specific statistics\n    for orientation, count in stats.matches_by_orientation.items():\n        print(f\"  Orientation {orientation}: {count} matches\")\nelse:\n    print(f\"Test file not found: {test_bam}\")\n\n2025-03-24 14:06:24,292 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-24 14:06:24,293 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']\n\n\nProcessing ../tests/test.bam\n\n\n\n\n\n2025-03-24 14:06:24,340 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\n\n\n\n\n\n2025-03-24 14:06:24,411 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientFR.bam\n2025-03-24 14:06:24,424 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientRC.bam\n2025-03-24 14:06:24,433 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientFR.bam\n2025-03-24 14:06:24,442 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientRC.bam\n2025-03-24 14:06:24,450 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_noBarcode.bam\n\n\n\nResults summary:\nTotal reads: 498\nTotal barcode matches: 18\nMatch rate: 3.61%\n  5prime: 10 matches\n  3prime: 8 matches\n  Orientation FR: 10 matches\n  Orientation RC: 8 matches\n\n\n\nconfig = BarcodeExtractorConfig(\n    barcodes=barcodes,\n    output_prefix=\"quick_stats\",\n    output_dir=\"../tests/quick_stats\",\n    max_mismatches=0,\n    verbose=True,\n    write_output_files=False  # Skip writing sequence files\n)\n\n# Process BAM file and get statistics only\nstats = process_bam_file(config, \"../tests/test.bam\")\n\n# Print summary\nprint(f\"Total reads: {stats.total_reads}\")\nprint(f\"Total barcode matches: {stats.total_barcode_matches}\")\nprint(f\"Match rate: {stats.total_barcode_matches / stats.total_reads * 100:.2f}%\")\n\n2025-03-24 14:07:19,200 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-24 14:07:19,202 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']\n\n\n\n\n\n2025-03-24 14:07:19,259 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\n\n\nTotal reads: 498\nTotal barcode matches: 18\nMatch rate: 3.61%\n\n\n\n!barcodeseqkit --bam ../tests/test.bam \\\n              --barcode5 CTGACTCCTTAAGGGCC \\\n              --barcode3 TAACTGAGGCCGGC \\\n              --output-prefix dual_barcode \\\n              --output-dir ../tests/index_cli\n\nInput BAM file: ../tests/test.bam\nUsing 5' barcode with sequence: CTGACTCCTTAAGGGCC\nUsing 3' barcode with sequence: TAACTGAGGCCGGC\nSaved configuration to ../tests/index_cli/dual_barcode_config.yaml\n2025-03-17 12:18:29,756 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-17 12:18:29,756 - BarcodeSeqKit - INFO - Output categories: ['barcode5_orientFR', 'barcode5_orientRC', 'barcode3_orientFR', 'barcode3_orientRC', 'noBarcode']\nClassifying reads: 100%|███████████████████| 498/498 [00:00&lt;00:00, 58040.55it/s]\n2025-03-17 12:18:29,810 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\nWriting reads: 100%|██████████████████████| 498/498 [00:00&lt;00:00, 230344.44it/s]\n2025-03-17 12:18:29,816 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode5_orientFR.bam\n2025-03-17 12:18:29,844 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode5_orientRC.bam\n2025-03-17 12:18:29,856 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode3_orientFR.bam\n2025-03-17 12:18:29,882 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode3_orientRC.bam\n2025-03-17 12:18:29,894 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_noBarcode.bam\nExtraction complete",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#docker-usage",
+    "href": "index.html#docker-usage",
+    "title": "BarcodeSeqKit",
+    "section": "Docker Usage",
+    "text": "Docker Usage\n\nPrerequisites\n\nDocker installed on your system\n\n\n\nPulling the Docker Image\ndocker pull mtinti/barcodeseqkit:0.0.4\n\n\nBasic Usage with the Included Test File\nThe container includes a test BAM file at /app/tests/test.bam. You can run BarcodeSeqKit on this test file and save the results to your local machine:\n# Create a directory for the results\nmkdir -p results\n\n# Run the container with the included test file\ndocker run --rm \\\n  -v $(pwd)/results:/output \\\n  mtinti/barcodeseqkit:0.0.4 \\\n  --bam /app/tests/test.bam \\\n  --barcode5 CTGACTCCTTAAGGGCC \\\n  --barcode3 TAACTGAGGCCGGC \\\n  --output-prefix test_extraction \\\n  --output-dir /output \\\n  --search-softclipped \\\n  --verbose\nThis command: - Uses the test BAM file already included in the container - Mounts your local results directory to /output inside the container - Extracts reads matching the specified 5’ and 3’ barcodes - Saves the results in your local results directory\n\n\nProcessing Your Own Data\nTo process your own data files:\ndocker run --rm \\\n  -v /path/to/your/data:/data \\\n  mtinti/barcodeseqkit:0.0.4 \\\n  --bam /data/your_sample.bam \\\n  --barcode ACGTACGT \\\n  --output-prefix extraction \\\n  --output-dir /data/results",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "index.html#conclusion",
+    "href": "index.html#conclusion",
+    "title": "BarcodeSeqKit",
+    "section": "Conclusion",
+    "text": "Conclusion\nBarcodeSeqKit provides a streamlined, user-friendly approach to barcode extraction from sequencing data. With its intuitive interface and flexible options, it’s suitable for a wide range of applications, from simple barcode detection to complex multi-barcode analyses.\nWhether you’re working with BAM files, FASTQ files, single barcodes, or multiple barcodes with specific locations, BarcodeSeqKit offers a straightforward solution for your barcode extraction needs.\nFor detailed API documentation, check out the module-specific notebooks: - Core Data Structures - Sequence Utilities - BAM Processing - FASTQ Processing - Command-Line Interface",
+    "crumbs": [
+      "BarcodeSeqKit"
+    ]
+  },
+  {
+    "objectID": "cli.html",
+    "href": "cli.html",
+    "title": "Command-Line Interface",
+    "section": "",
+    "text": "This notebook implements the command-line interface (CLI) for BarcodeSeqKit, allowing users to easily extract barcodes from BAM and FASTQ files without writing Python code.",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#introduction",
+    "href": "cli.html#introduction",
+    "title": "Command-Line Interface",
+    "section": "",
+    "text": "This notebook implements the command-line interface (CLI) for BarcodeSeqKit, allowing users to easily extract barcodes from BAM and FASTQ files without writing Python code.",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#command-line-argument-parser",
+    "href": "cli.html#command-line-argument-parser",
+    "title": "Command-Line Interface",
+    "section": "Command-Line Argument Parser",
+    "text": "Command-Line Argument Parser\nLet’s define the argument parser for the command-line interface.\n\nsource\n\nadd_extract_arguments\n\n add_extract_arguments (parser:argparse.ArgumentParser)\n\n*Add arguments for the extract command.\nArgs: parser: ArgumentParser to add arguments to*",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#main-entry-points",
+    "href": "cli.html#main-entry-points",
+    "title": "Command-Line Interface",
+    "section": "Main Entry Points",
+    "text": "Main Entry Points\n\nsource\n\nrun_cli\n\n run_cli (args:Optional[List[str]]=None)\n\n*Handle the extract command.\nArgs: args: Command-line arguments\nReturns: Exit code (0 for success, non-zero for error)*\n\nsource\n\n\nmain\n\n main ()\n\nMain entry point for command-line execution.\n\n# Testing the CLI with example arguments\n# Note: In a real environment, these would be passed via the command line\n# Define test arguments \ntest_args = [\n    \"--bam\", \"../tests/test.bam\",\n    \"--barcode5\", \"CTGACTCCTTAAGGGCC\",\n    \"--barcode3\", \"TAACTGAGGCCGGC\",\n    \"--output-prefix\", \"test_cli_out\",\n    \"--output-dir\", \"../tests/cli_output\",\n    \"--search-softclipped\",\n    \"--verbose\"\n]\n\n# Uncomment to run the test\nreturn_code = run_cli(test_args)\nprint(f\"CLI test returned: {return_code}\")\n\n2025-03-24 13:59:31,992 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-24 13:59:31,993 - BarcodeSeqKit - INFO - Output categories: ['barcode5_orientFR', 'barcode5_orientRC', 'barcode3_orientFR', 'barcode3_orientRC', 'noBarcode']\n\n\nInput BAM file: ../tests/test.bam\nUsing 5' barcode with sequence: CTGACTCCTTAAGGGCC\nUsing 3' barcode with sequence: TAACTGAGGCCGGC\nSaved configuration to ../tests/cli_output/test_cli_out_config.yaml\n\n\n\n\n\n2025-03-24 13:59:32,029 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\n\n\n\n\n\n2025-03-24 13:59:32,056 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/cli_output/test_cli_out_barcode5_orientFR.bam\n2025-03-24 13:59:32,068 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/cli_output/test_cli_out_barcode5_orientRC.bam\n2025-03-24 13:59:32,077 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/cli_output/test_cli_out_barcode3_orientFR.bam\n2025-03-24 13:59:32,085 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/cli_output/test_cli_out_barcode3_orientRC.bam\n2025-03-24 13:59:32,093 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/cli_output/test_cli_out_noBarcode.bam\n\n\nExtraction complete\nCLI test returned: 0\n\n\n\n# Testing the CLI with only-stats\n# Note: In a real environment, these would be passed via the command line\n# Define test arguments \ntest_args = [\n    \"--bam\", \"../tests/test.bam\",\n    \"--barcode5\", \"CTGACTCCTTAAGGGCC\",\n    \"--barcode3\", \"TAACTGAGGCCGGC\",\n    \"--output-prefix\", \"test_cli_out\",\n    \"--output-dir\", \"../tests/cli_output_only_stats\",\n    \"--search-softclipped\",\n    \"--only-stats\",\n    \"--verbose\"\n]\n\n# Uncomment to run the test\nreturn_code = run_cli(test_args)\nprint(f\"CLI test returned: {return_code}\")\n\n2025-03-24 14:02:05,410 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-24 14:02:05,412 - BarcodeSeqKit - INFO - Output categories: ['barcode5_orientFR', 'barcode5_orientRC', 'barcode3_orientFR', 'barcode3_orientRC', 'noBarcode']\n\n\nInput BAM file: ../tests/test.bam\nUsing 5' barcode with sequence: CTGACTCCTTAAGGGCC\nUsing 3' barcode with sequence: TAACTGAGGCCGGC\nSaved configuration to ../tests/cli_output_only_stats/test_cli_out_config.yaml\n\n\n\n\n\n2025-03-24 14:02:05,456 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\n\n\nExtraction complete\nCLI test returned: 0",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#command-line-examples",
+    "href": "cli.html#command-line-examples",
+    "title": "Command-Line Interface",
+    "section": "Command-Line Examples",
+    "text": "Command-Line Examples\nHere are some example command-line invocations for reference:\n\nExample 1: Extract barcodes from a BAM file\nbarcodeseqkit --bam tests/test.bam --barcode5 CTGACTCCTTAAGGGCC --output-prefix barcode_extraction --output-dir results\n\n\nExample 2: Extract barcodes from paired FASTQ files\nbarcodeseqkit --fastq1 tests/test.1.fastq.gz --fastq2 tests/test.2.fastq.gz --barcode GCCTCGCGA --output-prefix fastq_results --output-dir results\n\n\nExtract 5’ and 3’ barcodes from a directory containing FASTQ files\nbarcodeseqkit --fastq-dir ./fastq_dir --barcode5 ACTGACTG --barcode3 GTCAGTCA --output-prefix sample_barcoded --output-dir ./output --search-both-reads\n\n\nUse a barcode configuration file\nbarcodeseqkit --bam tests/test.bam --barcode-config barcode_config.yaml --output-prefix config_extraction --output-dir results",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#barcode-configuration-yaml-example",
+    "href": "cli.html#barcode-configuration-yaml-example",
+    "title": "Command-Line Interface",
+    "section": "Barcode Configuration YAML Example",
+    "text": "Barcode Configuration YAML Example\nHere’s an example of a barcode configuration YAML file:\nbarcodes:\n  - sequence: CTGACTCCTTAAGGGCC\n    location: 5\n    name: 5prime\n    description: 5' barcode for my experiment\n  - sequence: TAACTGAGGCCGGC\n    location: 3\n    name: 3prime\n    description: 3' barcode for my experiment",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "cli.html#conclusion",
+    "href": "cli.html#conclusion",
+    "title": "Command-Line Interface",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis notebook implements a command-line interface for BarcodeSeqKit, making it easy to use the library’s functionality without writing Python code. The CLI provides access to all the major features of the library, including barcode extraction from BAM and FASTQ files, customization options for searching and output, and comprehensive logging.",
+    "crumbs": [
+      "Command-Line Interface"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html",
+    "href": "bam_processing.html",
+    "title": "BAM Processing",
+    "section": "",
+    "text": "This notebook implements the BAM processing functionality for BarcodeSeqKit. It includes functions for handling BAM files, extracting barcodes, and sorting reads into appropriate output files based on barcode detection.",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#introduction",
+    "href": "bam_processing.html#introduction",
+    "title": "BAM Processing",
+    "section": "",
+    "text": "This notebook implements the BAM processing functionality for BarcodeSeqKit. It includes functions for handling BAM files, extracting barcodes, and sorting reads into appropriate output files based on barcode detection.",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#bam-file-utilities",
+    "href": "bam_processing.html#bam-file-utilities",
+    "title": "BAM Processing",
+    "section": "BAM File Utilities",
+    "text": "BAM File Utilities\nFirst, let’s define utility functions for BAM file operations.\n\nsource\n\nBamUtils\n\n BamUtils ()\n\nUtility functions for BAM file operations.",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#softclip-extraction-function",
+    "href": "bam_processing.html#softclip-extraction-function",
+    "title": "BAM Processing",
+    "section": "Softclip Extraction Function",
+    "text": "Softclip Extraction Function\n\nsource\n\nextract_softclipped_region\n\n extract_softclipped_region (read)\n\n*Extracts softclipped regions from an alignment. For + strand: gets softclipped region at 5’ end of read For - strand: gets softclipped region at 3’ end of read\nArgs: read: A pysam.AlignedSegment object\nReturns: str: Softclipped sequence or empty string if none exists*",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#bam-processor",
+    "href": "bam_processing.html#bam-processor",
+    "title": "BAM Processing",
+    "section": "BAM Processor",
+    "text": "BAM Processor\n\nsource\n\nprocess_bam_file\n\n process_bam_file (config:BarcodeSeqKit.core.BarcodeExtractorConfig,\n                   bam_file:str)\n\n*Process a BAM file to extract barcodes.\nArgs: config: Barcode extractor configuration bam_file: Path to the input BAM file\nReturns: Statistics from the extraction process*",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#helper-functions",
+    "href": "bam_processing.html#helper-functions",
+    "title": "BAM Processing",
+    "section": "Helper Functions",
+    "text": "Helper Functions\n\nsource\n\nprepare_bam_categories\n\n prepare_bam_categories (barcodes:List[BarcodeSeqKit.core.BarcodeConfig],\n                         single_barcode_mode:bool)\n\n*Prepare output categories based on barcodes.\nArgs: barcodes: List of barcode configurations single_barcode_mode: Whether we’re in single barcode mode\nReturns: List of category names*\n\nsource\n\n\nclassify_read\n\n classify_read (sequence:str,\n                barcodes:List[BarcodeSeqKit.core.BarcodeConfig],\n                max_mismatches:int, single_barcode_mode:bool)\n\n*Classify a read sequence based on barcode matches.\nArgs: sequence: Read sequence to classify barcodes: List of barcode configurations max_mismatches: Maximum number of mismatches allowed single_barcode_mode: Whether we’re in single barcode mode\nReturns: Tuple of (best_match, category)*\n\nsource\n\n\nget_output_path\n\n get_output_path (output_prefix:str, output_dir:str, category:str)\n\n*Get the output path for a category.\nArgs: output_prefix: Prefix for output files output_dir: Directory for output files category: Category name\nReturns: Path to the output BAM file*\n\nsource\n\n\nsave_statistics\n\n save_statistics (stats:BarcodeSeqKit.core.ExtractionStatistics,\n                  output_prefix:str, output_dir:str)\n\n*Save extraction statistics to files.\nArgs: stats: Extraction statistics output_prefix: Prefix for output files output_dir: Directory for output files*",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#example-usage",
+    "href": "bam_processing.html#example-usage",
+    "title": "BAM Processing",
+    "section": "Example Usage",
+    "text": "Example Usage\nLet’s demonstrate how to use these functions.\n\n# Example usage with test.bam\nfrom BarcodeSeqKit.core import BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig\n\n# Define barcodes to search for\nbarcodes = [\n    BarcodeConfig(\n        sequence=\"TAACTGAGGCCGGC\",  # 3' barcode \n        location=BarcodeLocationType.THREE_PRIME,\n        name=\"3prime\",\n        description=\"3' barcode from test data\"\n    ),\n    BarcodeConfig(\n        sequence=\"CTGACTCCTTAAGGGCC\",  # 5' barcode\n        location=BarcodeLocationType.FIVE_PRIME,\n        name=\"5prime\",\n        description=\"5' barcode from test data\"\n    )\n]\n\n# Create a configuration\noutput_dir = \"../tests/bam_output\"\nos.makedirs(output_dir, exist_ok=True)\n\nconfig = BarcodeExtractorConfig(\n    barcodes=barcodes,\n    output_prefix=\"test_extraction\",\n    output_dir=output_dir,\n    max_mismatches=0,\n    search_softclipped=True,  # Search in softclipped regions for barcodes\n    verbose=True\n)\n\n# Path to test BAM file\ntest_bam = \"../tests/test.bam\"\n\nif os.path.exists(test_bam):\n    print(f\"Processing {test_bam}\")\n    \n    # Process the BAM file\n    stats = process_bam_file(config, test_bam)\n    \n    # Print results\n    print(f\"\\nTotal reads: {stats.total_reads}\")\n    print(f\"Total barcode matches: {stats.total_barcode_matches}\")\n    \n    for barcode_name, count in stats.matches_by_barcode.items():\n        print(f\"  {barcode_name}: {count} matches\")\n    \n    for orientation, count in stats.matches_by_orientation.items():\n        print(f\"  Orientation {orientation}: {count} matches\")\n    \n    for category, count in stats.matches_by_category.items():\n        print(f\"  Category {category}: {count} matches\")\n    \n    # List the output files\n    output_files = [f for f in os.listdir(output_dir) if f.startswith(\"test_extraction_\") and f.endswith(\".bam\")]\n    print(\"\\nOutput files:\")\n    for f in output_files:\n        path = os.path.join(output_dir, f)\n        size = os.path.getsize(path)\n        print(f\"  {f} ({size} bytes)\")\n        try:\n            # Use BamUtils to get read count for each output file\n            read_count = BamUtils.get_read_count(path)\n            print(f\"  {f} ({read_count} alignments)\")\n        except Exception as e:\n            # Fallback to file size if read count fails\n            size = os.path.getsize(path)\n            print(f\"  {f} ({size} bytes) - Error getting alignment count: {str(e)}\")\n\n2025-03-24 13:55:29,817 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)\n2025-03-24 13:55:29,818 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']\n\n\nProcessing ../tests/test.bam\n\n\n\n\n\n2025-03-24 13:55:29,851 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads\n\n\n\n\n\n2025-03-24 13:55:29,878 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/bam_output/test_extraction_barcode3_orientFR.bam\n2025-03-24 13:55:29,894 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/bam_output/test_extraction_barcode3_orientRC.bam\n2025-03-24 13:55:29,902 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/bam_output/test_extraction_barcode5_orientFR.bam\n2025-03-24 13:55:29,912 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/bam_output/test_extraction_barcode5_orientRC.bam\n2025-03-24 13:55:29,920 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/bam_output/test_extraction_noBarcode.bam\n\n\n\nTotal reads: 498\nTotal barcode matches: 18\n  5prime: 10 matches\n  3prime: 8 matches\n  Orientation FR: 10 matches\n  Orientation RC: 8 matches\n  Category barcode5_orientFR: 7 matches\n  Category barcode3_orientFR: 3 matches\n  Category barcode3_orientRC: 5 matches\n  Category barcode5_orientRC: 3 matches\n\nOutput files:\n  test_extraction_barcode5_orientRC.bam (5998 bytes)\n  test_extraction_barcode5_orientRC.bam (6 alignments)\n  test_extraction_barcode5_orientFR.bam (6392 bytes)\n  test_extraction_barcode5_orientFR.bam (14 alignments)\n  test_extraction_barcode3_orientRC.bam (6069 bytes)\n  test_extraction_barcode3_orientRC.bam (10 alignments)\n  test_extraction_barcode3_orientFR.bam (5928 bytes)\n  test_extraction_barcode3_orientFR.bam (6 alignments)\n  test_extraction_noBarcode.bam (26763 bytes)\n  test_extraction_noBarcode.bam (462 alignments)",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "bam_processing.html#conclusion",
+    "href": "bam_processing.html#conclusion",
+    "title": "BAM Processing",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis notebook implements the BAM processing functionality for BarcodeSeqKit. It provides efficient extraction and classification of barcoded reads from BAM files without using abstract classes, making the code more direct and easier to understand.",
+    "crumbs": [
+      "BAM Processing"
+    ]
+  },
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "BarcodeSeqKit Core",
+    "section": "",
+    "text": "BarcodeSeqKit is a library designed for extracting and processing barcoded sequences from next-generation sequencing data. This notebook contains the core data structures and utility functions for the library.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#introduction",
+    "href": "core.html#introduction",
+    "title": "BarcodeSeqKit Core",
+    "section": "",
+    "text": "BarcodeSeqKit is a library designed for extracting and processing barcoded sequences from next-generation sequencing data. This notebook contains the core data structures and utility functions for the library.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#enumerations",
+    "href": "core.html#enumerations",
+    "title": "BarcodeSeqKit Core",
+    "section": "Enumerations",
+    "text": "Enumerations\nLet’s define the basic enumerations used throughout the library.\n\nsource\n\nOrientationType\n\n OrientationType (value, names=None, module=None, qualname=None,\n                  type=None, start=1)\n\nOrientation types for barcode sequences.\n\nsource\n\n\nBarcodeLocationType\n\n BarcodeLocationType (value, names=None, module=None, qualname=None,\n                      type=None, start=1)\n\nLocation types for barcodes.\n\nsource\n\n\nBarcodeExtractorConfig\n\n BarcodeExtractorConfig (barcodes:List[__main__.BarcodeConfig],\n                         output_prefix:str, output_dir:str='.',\n                         max_mismatches:int=0,\n                         search_softclipped:bool=False,\n                         verbose:bool=False, log_file:Optional[str]=None,\n                         write_output_files:bool=True)\n\nConfiguration for barcode extraction.\n\nsource\n\n\nBarcodeConfig\n\n BarcodeConfig (sequence:str,\n                location:__main__.BarcodeLocationType=&lt;BarcodeLocationType\n                .UNKNOWN: 'UNK'&gt;, name:Optional[str]=None,\n                description:Optional[str]=None)\n\nConfiguration for a barcode sequence.\n\nsource\n\n\nBarcodeMatch\n\n BarcodeMatch (barcode:__main__.BarcodeConfig,\n               orientation:__main__.OrientationType, position:int,\n               sequence:str)\n\nRepresents a match of a barcode in a sequence.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#statistics-tracking",
+    "href": "core.html#statistics-tracking",
+    "title": "BarcodeSeqKit Core",
+    "section": "Statistics Tracking",
+    "text": "Statistics Tracking\n\nsource\n\nExtractionStatistics\n\n ExtractionStatistics (total_reads:int=0, total_barcode_matches:int=0,\n                       matches_by_barcode:Dict[str,int]=&lt;factory&gt;,\n                       matches_by_orientation:Dict[str,int]=&lt;factory&gt;,\n                       matches_by_category:Dict[str,int]=&lt;factory&gt;)\n\nStatistics collected during barcode extraction.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#file-format-utilities",
+    "href": "core.html#file-format-utilities",
+    "title": "BarcodeSeqKit Core",
+    "section": "File Format Utilities",
+    "text": "File Format Utilities\n\nsource\n\nFileFormat\n\n FileFormat (value, names=None, module=None, qualname=None, type=None,\n             start=1)\n\nSupported file formats.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#example-usage",
+    "href": "core.html#example-usage",
+    "title": "BarcodeSeqKit Core",
+    "section": "Example Usage",
+    "text": "Example Usage\n\n# Example of creating barcode configurations\nbarcode_5prime = BarcodeConfig(\n    sequence=\"TCGCGAGGC\",\n    location=BarcodeLocationType.FIVE_PRIME,\n    name=\"5prime\",\n    description=\"5' barcode for phenotyping experiment\"\n)\n\nbarcode_3prime = BarcodeConfig(\n    sequence=\"GGCCGGCCGG\",\n    location=BarcodeLocationType.THREE_PRIME,\n    name=\"3prime\",\n    description=\"3' barcode for phenotyping experiment\"\n)\n# Print information about the barcodes\nprint(f\"5' barcode: {barcode_5prime.sequence}, RC: {barcode_5prime.reverse_complement}\")\nprint(f\"3' barcode: {barcode_3prime.sequence}, RC: {barcode_3prime.reverse_complement}\")\n\n# Create a basic extraction configuration\nconfig = BarcodeExtractorConfig(\n    barcodes=[barcode_5prime, barcode_3prime],\n    output_prefix=\"test_output\",\n    output_dir=\"../tests/core_output\",\n    max_mismatches=0,\n    verbose=True\n)\n\n# Save the configuration to YAML\nconfig.save_yaml(\"../tests/core_output/test_config.yaml\")\nprint(\"Configuration saved to test_config.yaml\")\n\n# Load the configuration back\nloaded_config = BarcodeExtractorConfig.load_yaml(\"../tests/core_output/test_config.yaml\")\nprint(f\"Loaded {len(loaded_config.barcodes)} barcodes from config file\")\n\n5' barcode: TCGCGAGGC, RC: GCCTCGCGA\n3' barcode: GGCCGGCCGG, RC: CCGGCCGGCC\nConfiguration saved to test_config.yaml\nLoaded 2 barcodes from config file",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#basic-utility-functions",
+    "href": "core.html#basic-utility-functions",
+    "title": "BarcodeSeqKit Core",
+    "section": "Basic Utility Functions",
+    "text": "Basic Utility Functions\nLet’s add some basic utility functions for common operations.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "core.html#conclusion",
+    "href": "core.html#conclusion",
+    "title": "BarcodeSeqKit Core",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis notebook establishes the core data structures for the BarcodeSeqKit library It provides all the necessary components for barcode configuration, matching, and statistics tracking, which will be used by the specialized processors for BAM and FASTQ files.",
+    "crumbs": [
+      "BarcodeSeqKit Core"
+    ]
+  },
+  {
+    "objectID": "fastq_processing.html",
+    "href": "fastq_processing.html",
+    "title": "FASTQ Processing",
+    "section": "",
+    "text": "source\n\n\n\n FastqHandler ()\n\nHandles FASTQ file operations.",
+    "crumbs": [
+      "FASTQ Processing"
+    ]
+  },
+  {
+    "objectID": "fastq_processing.html#fastq-file-handler",
+    "href": "fastq_processing.html#fastq-file-handler",
+    "title": "FASTQ Processing",
+    "section": "",
+    "text": "source\n\n\n\n FastqHandler ()\n\nHandles FASTQ file operations.",
+    "crumbs": [
+      "FASTQ Processing"
+    ]
+  },
+  {
+    "objectID": "fastq_processing.html#fastq-output-manager",
+    "href": "fastq_processing.html#fastq-output-manager",
+    "title": "FASTQ Processing",
+    "section": "FASTQ Output Manager",
+    "text": "FASTQ Output Manager\n\nsource\n\nFastqOutputManager\n\n FastqOutputManager (output_prefix:str, output_dir:str,\n                     categories:List[str], compress:bool=True,\n                     write_output:bool=True)\n\nManages output FASTQ files for different barcode categories.",
+    "crumbs": [
+      "FASTQ Processing"
+    ]
+  },
+  {
+    "objectID": "fastq_processing.html#fastq-processing-functions",
+    "href": "fastq_processing.html#fastq-processing-functions",
+    "title": "FASTQ Processing",
+    "section": "FASTQ Processing Functions",
+    "text": "FASTQ Processing Functions\n\nsource\n\nprepare_fastq_categories\n\n prepare_fastq_categories\n                           (barcodes:List[BarcodeSeqKit.core.BarcodeConfig\n                           ])\n\n*Prepare output categories based on barcodes.\nArgs: barcodes: List of barcode configurations\nReturns: List of category names*\n\nsource\n\n\nprocess_fastq_files\n\n process_fastq_files (config:BarcodeSeqKit.core.BarcodeExtractorConfig,\n                      fastq_files:List[str], compress_output:bool=True,\n                      search_both_reads:bool=True)\n\n*Process FASTQ files to extract barcodes.\nArgs: config: Barcode extractor configuration fastq_files: List of FASTQ files (either 1 or 2 files) compress_output: Whether to compress output files search_both_reads: Whether to search for barcodes in both reads of paired-end data\nReturns: Statistics from the extraction process*\n\nsource\n\n\nsave_statistics\n\n save_statistics (stats:BarcodeSeqKit.core.ExtractionStatistics,\n                  output_prefix:str, output_dir:str)\n\n*Save extraction statistics to files.\nArgs: stats: Extraction statistics output_prefix: Prefix for output files output_dir: Directory for output files*\n\n# Example usage with test FASTQ files\nfrom BarcodeSeqKit.core import BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig\n\n# Define barcodes to search for\nbarcodes = [\n    BarcodeConfig(\n        sequence=\"TAACTGAGGCCGGC\",  # 3' barcode \n        location=BarcodeLocationType.THREE_PRIME,\n        name=\"3prime\",\n        description=\"3' barcode from test data\"\n    ),\n    BarcodeConfig(\n        sequence=\"CTGACTCCTTAAGGGCC\",  # 5' barcode\n        location=BarcodeLocationType.FIVE_PRIME,\n        name=\"5prime\",\n        description=\"5' barcode from test data\"\n    )\n]\n\n# Create a configuration\noutput_dir = \"../tests/fastq_output\"\nos.makedirs(output_dir, exist_ok=True)\n\nconfig = BarcodeExtractorConfig(\n    barcodes=barcodes,\n    output_prefix=\"test_extraction\",\n    output_dir=output_dir,\n    max_mismatches=0,\n    verbose=True\n)\n\n# Path to test FASTQ files\nfastq_dir = \"../tests\"\ntest_fastq1 = os.path.join(fastq_dir, \"test.1.fastq.gz\")\ntest_fastq2 = os.path.join(fastq_dir, \"test.2.fastq.gz\")\n\n# Check if test files exist\nif os.path.exists(test_fastq1) and os.path.exists(test_fastq2):\n    print(f\"Processing FASTQ files: {test_fastq1}, {test_fastq2}\")\n    \n    # Process the FASTQ files\n    stats = process_fastq_files(\n        config=config,\n        fastq_files=[test_fastq1, test_fastq2],\n        compress_output=True,\n        search_both_reads=True\n    )\n    \n    # Print results\n    print(f\"\\nTotal reads: {stats.total_reads}\")\n    print(f\"Total barcode matches: {stats.total_barcode_matches}\")\n    \n    for barcode_name, count in stats.matches_by_barcode.items():\n        print(f\"  {barcode_name}: {count} matches\")\n    \n    for orientation, count in stats.matches_by_orientation.items():\n        print(f\"  Orientation {orientation}: {count} matches\")\n    \n    for category, count in stats.matches_by_category.items():\n        print(f\"  Category {category}: {count} matches\")\n    \n    # List the output files\n    output_files = [f for f in os.listdir(output_dir) if f.startswith(\"test_extraction_\") and f.endswith((\".fastq.gz\", \".fastq\"))]\n    print(\"\\nOutput files:\")\n    for f in output_files:\n        path = os.path.join(output_dir, f)\n        if f.endswith(\".fastq.gz\"):\n            try:\n                # Count FASTQ reads\n                read_count = FastqHandler.count_fastq_reads(path)\n                print(f\"  {f} ({read_count} reads)\")\n            except Exception as e:\n                # Fallback to file size\n                size = os.path.getsize(path)\n                print(f\"  {f} ({size} bytes) - Error getting read count: {str(e)}\")\n        else:\n            size = os.path.getsize(path)\n            print(f\"  {f} ({size} bytes)\")\nelse:\n    print(f\"Test files not found. Expected: {test_fastq1} and {test_fastq2}\")\n\nTest files not found. Expected: ../tests/test.1.fastq.gz and ../tests/test.2.fastq.gz",
+    "crumbs": [
+      "FASTQ Processing"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html",
+    "href": "sequence_utils.html",
+    "title": "Sequence Utilities",
+    "section": "",
+    "text": "This notebook contains utility functions for sequence manipulation, barcode detection, and quality assessment in the BarcodeSeqKit library. These utilities are format-agnostic and can be used with both BAM and FASTQ data.",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#introduction",
+    "href": "sequence_utils.html#introduction",
+    "title": "Sequence Utilities",
+    "section": "",
+    "text": "This notebook contains utility functions for sequence manipulation, barcode detection, and quality assessment in the BarcodeSeqKit library. These utilities are format-agnostic and can be used with both BAM and FASTQ data.",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#basic-sequence-operations",
+    "href": "sequence_utils.html#basic-sequence-operations",
+    "title": "Sequence Utilities",
+    "section": "Basic Sequence Operations",
+    "text": "Basic Sequence Operations\nFirst, let’s define basic sequence manipulation functions.\n\nsource\n\nreverse_complement\n\n reverse_complement (sequence:str)\n\n*Return the reverse complement of a DNA sequence.\nArgs: sequence: DNA sequence\nReturns: Reverse complement of the sequence*\n\nsource\n\n\nhamming_distance\n\n hamming_distance (seq1:str, seq2:str)\n\n*Calculate the Hamming distance between two sequences.\nThe sequences must be of the same length.\nArgs: seq1: First sequence seq2: Second sequence\nReturns: Hamming distance (number of positions where the sequences differ)\nRaises: ValueError: If sequences have different lengths*",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#barcode-detection",
+    "href": "sequence_utils.html#barcode-detection",
+    "title": "Sequence Utilities",
+    "section": "Barcode Detection",
+    "text": "Barcode Detection\nNow let’s implement functions for detecting barcodes in sequences.\n\nsource\n\nfind_barcode_matches\n\n find_barcode_matches (sequence:str,\n                       barcodes:List[BarcodeSeqKit.core.BarcodeConfig],\n                       max_mismatches:int=0)\n\n*Find all barcode matches in a sequence.\nArgs: sequence: The DNA/RNA sequence to search in barcodes: List of barcode configurations to search for max_mismatches: Maximum number of mismatches to allow\nReturns: List of BarcodeMatch objects representing the matches found*\n\nsource\n\n\nfind_best_barcode_match\n\n find_best_barcode_match (sequence:str,\n                          barcodes:List[BarcodeSeqKit.core.BarcodeConfig],\n                          max_mismatches:int=1)\n\n*Find the best matching barcode in a sequence.\nArgs: sequence: The sequence to search in barcodes: List of barcode configurations to search for max_mismatches: Maximum number of mismatches to allow\nReturns: The best matching BarcodeMatch or None if no match found*\n\nsource\n\n\nclassify_read_by_first_match\n\n classify_read_by_first_match (sequence:str,\n                               barcodes:List[BarcodeSeqKit.core.BarcodeCon\n                               fig], max_mismatches:int=0)\n\n*Classify a read based on the first barcode match found.\nThis is an optimized version that stops after finding the first match, without evaluating all possible matches in the sequence.\nArgs: sequence: The sequence to classify barcodes: List of barcode configurations to search for max_mismatches: Maximum number of mismatches to allow\nReturns: Tuple of (match, category) Category is one of: “barcode5_orientFR”, “barcode5_orientRC”, etc. or “noBarcode” if no match found*",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#category-and-output-file-handling",
+    "href": "sequence_utils.html#category-and-output-file-handling",
+    "title": "Sequence Utilities",
+    "section": "Category and Output File Handling",
+    "text": "Category and Output File Handling\n\nsource\n\nget_output_category\n\n get_output_category (match:Optional[BarcodeSeqKit.core.BarcodeMatch],\n                      single_barcode_mode:bool=False)\n\n*Get the output category for a barcode match.\nArgs: match: Barcode match or None single_barcode_mode: Whether we’re in single barcode mode\nReturns: Category string for output file naming*",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#example-usage",
+    "href": "sequence_utils.html#example-usage",
+    "title": "Sequence Utilities",
+    "section": "Example Usage",
+    "text": "Example Usage\nLet’s demonstrate how to use these utilities.\n\n# Create test barcode configurations\nfrom BarcodeSeqKit.core import BarcodeConfig, BarcodeLocationType\n\nbarcode_5prime = BarcodeConfig(\n    sequence=\"TCGCGAGGC\",\n    location=BarcodeLocationType.FIVE_PRIME,\n    name=\"5\",\n    description=\"5' barcode for test\"\n)\n\nbarcode_3prime = BarcodeConfig(\n    sequence=\"GGCCGGCCGG\",\n    location=BarcodeLocationType.THREE_PRIME,\n    name=\"3\",\n    description=\"3' barcode for test\"\n)\n\n# Example sequence with barcodes\nsequence = \"AAAAAATCGCGAGGCAAAAAAAGGCCGGCCGGAAAAAA\"\nprint(f\"Test sequence: {sequence}\")\n\n# Find all barcode matches\nmatches = find_barcode_matches(sequence, [barcode_5prime, barcode_3prime])\nprint(f\"Found {len(matches)} matches:\")\nfor match in matches:\n    print(f\"  {match}\")\n    print(f\"    Barcode: {match.barcode.name}\")\n    print(f\"    Orientation: {match.orientation.value}\")\n    print(f\"    Position: {match.position}\")\n    print(f\"    Sequence: {match.sequence}\")\n\n# Classify a read using first match\nprint(\"\\nClassifying reads:\")\nfor test_seq in [sequence, \n                \"AAAAAAGCCTCGCGAAAAAAA\",  # 5' barcode with mismatch\n                \"AAAAAAGGCCGGCCTGAAAAAA\"]: # 3' barcode with mismatch\n    match, category = classify_read_by_first_match(\n        sequence=test_seq,\n        barcodes=[barcode_5prime, barcode_3prime],\n        max_mismatches=1\n    )\n    print(f\"Sequence: {test_seq}\")\n    print(f\"  Match: {match}\")\n    print(f\"  Category: {category}\")\n\nTest sequence: AAAAAATCGCGAGGCAAAAAAAGGCCGGCCGGAAAAAA\nFound 2 matches:\n  5 (FR) at position 6\n    Barcode: 5\n    Orientation: FR\n    Position: 6\n    Sequence: TCGCGAGGC\n  3 (FR) at position 22\n    Barcode: 3\n    Orientation: FR\n    Position: 22\n    Sequence: GGCCGGCCGG\n\nClassifying reads:\nSequence: AAAAAATCGCGAGGCAAAAAAAGGCCGGCCGGAAAAAA\n  Match: 5 (FR) at position 5\n  Category: barcode5_orientFR\nSequence: AAAAAAGCCTCGCGAAAAAAA\n  Match: 5 (RC) at position 5\n  Category: barcode5_orientRC\nSequence: AAAAAAGGCCGGCCTGAAAAAA\n  Match: 3 (FR) at position 6\n  Category: barcode3_orientFR\n\n\n\n# Test with real data \nimport os\nimport pysam\nfrom tqdm.auto import tqdm\nfrom BarcodeSeqKit.core import ExtractionStatistics\n\n# Path to the test file (adjust if needed)\nbam_file = \"../tests/test.bam\"\n\nif os.path.exists(bam_file):\n    print(f\"Testing with {bam_file}\")\n    stats = ExtractionStatistics()\n    \n    # Define barcodes to search for\n    example_barcodes = [\n        BarcodeConfig(\n            sequence=\"TAACTGAGGCCGGC\",  # Example barcode to search for\n            location=BarcodeLocationType.THREE_PRIME,\n            name=\"3prime\",\n            description=\"3' barcode from test data\"\n        ),\n        BarcodeConfig(\n            sequence=\"CTGACTCCTTAAGGGCC\",  # Example barcode to search for\n            location=BarcodeLocationType.FIVE_PRIME,\n            name=\"5prime\",\n            description=\"5' barcode from test data\"\n        )\n    ]\n    \n    # Count matches\n    with pysam.AlignmentFile(bam_file, \"rb\") as bam:\n        for read in tqdm(bam):\n            stats.total_reads += 1\n            sequence = read.query_sequence\n            if sequence:\n                match, category = classify_read_by_first_match(\n                    sequence=sequence,\n                    barcodes=example_barcodes,\n                    max_mismatches=0\n                )\n                if match:\n                    stats.update_barcode_match(match, category)\n    \n    # Print statistics\n    print(\"\\nBarcode detection statistics:\")\n    print(f\"Total reads: {stats.total_reads}\")\n    print(f\"Total matches: {stats.total_barcode_matches}\")\n    \n    for barcode_name, count in stats.matches_by_barcode.items():\n        print(f\"  {barcode_name}: {count} matches\")\n    \n    for orientation, count in stats.matches_by_orientation.items():\n        print(f\"  Orientation {orientation}: {count} matches\")\n    \n    for category, count in stats.matches_by_category.items():\n        print(f\"  Category {category}: {count} matches\")\nelse:\n    print(f\"Test file not found: {bam_file}\")\n\nTest file not found: ../tests/test.bam",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  },
+  {
+    "objectID": "sequence_utils.html#conclusion",
+    "href": "sequence_utils.html#conclusion",
+    "title": "Sequence Utilities",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis notebook provides utility functions for sequence manipulation, barcode detection, and classification in BarcodeSeqKit. These functions are used by both the BAM and FASTQ processing modules to identify and categorize barcoded reads.",
+    "crumbs": [
+      "Sequence Utilities"
+    ]
+  }
+]

@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Extract and classify sequences based on barcode presence in BAM and FASTQ files">
+
+<title>BarcodeSeqKit</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-ae44de7e3b26b230a7801128389852ee.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="BarcodeSeqKit">
+<meta property="og:description" content="Extract and classify sequences based on barcode presence in BAM and FASTQ files">
+<meta property="og:site_name" content="BarcodeSeqKit">
+<meta name="twitter:title" content="BarcodeSeqKit">
+<meta name="twitter:description" content="Extract and classify sequences based on barcode presence in BAM and FASTQ files">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">BarcodeSeqKit</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">BarcodeSeqKit</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">BarcodeSeqKit</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BarcodeSeqKit Core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sequence_utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sequence Utilities</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bam_processing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BAM Processing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fastq_processing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">FASTQ Processing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Command-Line Interface</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#key-features" id="toc-key-features" class="nav-link active" data-scroll-target="#key-features">Key Features</a></li>
+  <li><a href="#regular-expression-support-in-barcode-matching" id="toc-regular-expression-support-in-barcode-matching" class="nav-link" data-scroll-target="#regular-expression-support-in-barcode-matching">Regular Expression Support in Barcode Matching</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a>
+  <ul class="collapse">
+  <li><a href="#quick-start" id="toc-quick-start" class="nav-link" data-scroll-target="#quick-start">Quick Start</a></li>
+  <li><a href="#command-line-usage" id="toc-command-line-usage" class="nav-link" data-scroll-target="#command-line-usage">Command-line Usage</a></li>
+  <li><a href="#using-regular-expression-patterns" id="toc-using-regular-expression-patterns" class="nav-link" data-scroll-target="#using-regular-expression-patterns">Using Regular Expression Patterns</a></li>
+  <li><a href="#python-api-usage" id="toc-python-api-usage" class="nav-link" data-scroll-target="#python-api-usage">Python API Usage</a></li>
+  </ul></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts">Key Concepts</a>
+  <ul class="collapse">
+  <li><a href="#barcode-types" id="toc-barcode-types" class="nav-link" data-scroll-target="#barcode-types">Barcode Types</a></li>
+  </ul></li>
+  <li><a href="#barcode-orientations" id="toc-barcode-orientations" class="nav-link" data-scroll-target="#barcode-orientations">Barcode Orientations</a></li>
+  <li><a href="#softclipped-regions" id="toc-softclipped-regions" class="nav-link" data-scroll-target="#softclipped-regions">Softclipped Regions</a></li>
+  <li><a href="#advanced-options" id="toc-advanced-options" class="nav-link" data-scroll-target="#advanced-options">Advanced Options</a>
+  <ul class="collapse">
+  <li><a href="#command-line-arguments" id="toc-command-line-arguments" class="nav-link" data-scroll-target="#command-line-arguments">Command-Line Arguments</a></li>
+  <li><a href="#barcode-configuration-files" id="toc-barcode-configuration-files" class="nav-link" data-scroll-target="#barcode-configuration-files">Barcode Configuration Files</a></li>
+  </ul></li>
+  <li><a href="#output-files-and-statistics" id="toc-output-files-and-statistics" class="nav-link" data-scroll-target="#output-files-and-statistics">Output Files and Statistics</a></li>
+  <li><a href="#statistics-only-mode" id="toc-statistics-only-mode" class="nav-link" data-scroll-target="#statistics-only-mode">Statistics-Only Mode</a>
+  <ul class="collapse">
+  <li><a href="#command-line-usage-1" id="toc-command-line-usage-1" class="nav-link" data-scroll-target="#command-line-usage-1">Command-line Usage</a></li>
+  </ul></li>
+  <li><a href="#real-world-example" id="toc-real-world-example" class="nav-link" data-scroll-target="#real-world-example">Real-World Example</a></li>
+  <li><a href="#using-barcodeseqkit-with-containers" id="toc-using-barcodeseqkit-with-containers" class="nav-link" data-scroll-target="#using-barcodeseqkit-with-containers">Using BarcodeSeqKit with Containers</a>
+  <ul class="collapse">
+  <li><a href="#docker-usage" id="toc-docker-usage" class="nav-link" data-scroll-target="#docker-usage">Docker Usage</a>
+  <ul class="collapse">
+  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
+  <li><a href="#pulling-the-docker-image" id="toc-pulling-the-docker-image" class="nav-link" data-scroll-target="#pulling-the-docker-image">Pulling the Docker Image</a></li>
+  <li><a href="#basic-usage-with-the-included-test-file" id="toc-basic-usage-with-the-included-test-file" class="nav-link" data-scroll-target="#basic-usage-with-the-included-test-file">Basic Usage with the Included Test File</a></li>
+  <li><a href="#processing-your-own-data" id="toc-processing-your-own-data" class="nav-link" data-scroll-target="#processing-your-own-data">Processing Your Own Data</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/mtinti/BarcodeSeqKit/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="index.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">BarcodeSeqKit</h1>
+</div>
+
+<div>
+  <div class="description">
+    Extract and classify sequences based on barcode presence in BAM and FASTQ files
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="key-features" class="level3">
+<h3 class="anchored" data-anchor-id="key-features">Key Features</h3>
+<ul>
+<li><strong>Simple yet powerful</strong>: Extract barcodes from BAM or FASTQ files with minimal code</li>
+<li><strong>Support for both file types</strong>: Process BAM files (including softclipped regions) and FASTQ files (including paired-end data)</li>
+<li><strong>Flexible barcode options</strong>: Use single barcodes or specific 5’/3’ combinations</li>
+<li><strong>Orientation detection</strong>: Identify barcodes in both forward and reverse complement orientations</li>
+<li><strong>Fuzzy matching</strong>: Configure allowable mismatches for barcode detection</li>
+<li><strong>Specialized functions</strong>: Search in softclipped regions of BAM alignments or both reads in paired FASTQ data</li>
+<li><strong>Detailed statistics</strong>: Get comprehensive reports on barcode matches and distribution</li>
+</ul>
+</section>
+<section id="regular-expression-support-in-barcode-matching" class="level2">
+<h2 class="anchored" data-anchor-id="regular-expression-support-in-barcode-matching">Regular Expression Support in Barcode Matching</h2>
+<blockquote class="blockquote">
+<p>BarcodeSeqKit uses Python’s regular expression engine (<code>re</code> module) for exact barcode matching, which means you can leverage the full power of regular expressions in your barcode patterns.</p>
+</blockquote>
+</section>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<p>You can install BarcodeSeqKit using pip:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install barcodeseqkit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Or directly from the GitHub repository:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install git+https://github.com/username/BarcodeSeqKit.git</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="quick-start" class="level3">
+<h3 class="anchored" data-anchor-id="quick-start">Quick Start</h3>
+<p>Let’s dive right in with some common use cases!</p>
+</section>
+<section id="command-line-usage" class="level3">
+<h3 class="anchored" data-anchor-id="command-line-usage">Command-line Usage</h3>
+<p>BarcodeSeqKit provides a simple command-line interface that makes it easy to extract barcodes without writing any code.</p>
+<section id="extract-a-single-barcode" class="level4">
+<h4 class="anchored" data-anchor-id="extract-a-single-barcode">Extract a Single Barcode</h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">barcodeseqkit</span> <span class="at">--bam</span> tests/test.bam <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">--barcode</span> CTGACTCCTTAAGGGCC <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-prefix</span> single_barcode <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-dir</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This command extracts reads containing the specified barcode (in either forward or reverse complement orientation) and creates: - <code>results/single_barcode_barcode_orientFR.bam</code>: Forward orientation matches - <code>results/single_barcode_barcode_orientRC.bam</code>: Reverse complement matches - <code>results/single_barcode_extraction_stats.json</code>: Detailed statistics in JSON format - <code>results/single_barcode_extraction_stats.tsv</code>: Detailed statistics in TSV format</p>
+</section>
+<section id="extract-5-and-3-barcodes" class="level4">
+<h4 class="anchored" data-anchor-id="extract-5-and-3-barcodes">Extract 5’ and 3’ Barcodes</h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">barcodeseqkit</span> <span class="at">--bam</span> tests/test.bam <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">--barcode5</span> CTGACTCCTTAAGGGCC <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">--barcode3</span> TAACTGAGGCCGGC <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-prefix</span> dual_barcode <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-dir</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This creates separate files for each barcode and orientation combination: - <code>results/dual_barcode_barcode5_orientFR.bam</code> - <code>results/dual_barcode_barcode5_orientRC.bam</code> - <code>results/dual_barcode_barcode3_orientFR.bam</code> - <code>results/dual_barcode_barcode3_orientRC.bam</code></p>
+</section>
+<section id="process-paired-fastq-files" class="level4">
+<h4 class="anchored" data-anchor-id="process-paired-fastq-files">Process Paired FASTQ Files</h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">barcodeseqkit</span> <span class="at">--fastq1</span> tests/test.1.fastq.gz <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">--fastq2</span> tests/test.2.fastq.gz <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">--barcode</span> CTGACTCCTTAAGGGCC <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-prefix</span> fastq_extraction <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">--search-both-reads</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This processes paired FASTQ files and creates output FASTQ files for each barcode category.</p>
+</section>
+</section>
+<section id="using-regular-expression-patterns" class="level3">
+<h3 class="anchored" data-anchor-id="using-regular-expression-patterns">Using Regular Expression Patterns</h3>
+<blockquote class="blockquote">
+<p>Instead of specifying a fixed barcode sequence, you can provide a regular expression pattern:</p>
+</blockquote>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a barcode with ambiguous positions</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>barcode_config <span class="op">=</span> BarcodeConfig(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    sequence<span class="op">=</span><span class="st">"ACGT[AT]GC[GC].TT"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    location<span class="op">=</span>BarcodeLocationType.FIVE_PRIME,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"5prime_variable"</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="python-api-usage" class="level3">
+<h3 class="anchored" data-anchor-id="python-api-usage">Python API Usage</h3>
+<p>BarcodeSeqKit’s Python API is designed to be intuitive and straightforward:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> BarcodeSeqKit.core <span class="im">import</span> BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> BarcodeSeqKit.bam_processing <span class="im">import</span> process_bam_file</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Define barcodes</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>barcodes <span class="op">=</span> [</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    BarcodeConfig(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        sequence<span class="op">=</span><span class="st">"TAACTGAGGCCGGC"</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        location<span class="op">=</span>BarcodeLocationType.THREE_PRIME,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"3prime"</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    BarcodeConfig(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        sequence<span class="op">=</span><span class="st">"CTGACTCCTTAAGGGCC"</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        location<span class="op">=</span>BarcodeLocationType.FIVE_PRIME,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"5prime"</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Create configuration</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> BarcodeExtractorConfig(</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    barcodes<span class="op">=</span>barcodes,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    output_prefix<span class="op">=</span><span class="st">"my_extraction"</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">"./results"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    max_mismatches<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    search_softclipped<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">True</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Process BAM file</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> process_bam_file(config, <span class="st">"tests/test.bam"</span>)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Report results</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Processed </span><span class="sc">{</span>stats<span class="sc">.</span>total_reads<span class="sc">}</span><span class="ss"> reads"</span>)</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Found </span><span class="sc">{</span>stats<span class="sc">.</span>total_barcode_matches<span class="sc">}</span><span class="ss"> barcode matches"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>or FASTQ files:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> BarcodeSeqKit.fastq_processing <span class="im">import</span> process_fastq_files</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the same config as above</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>fastq_files <span class="op">=</span> [<span class="st">"tests/test.1.fastq.gz"</span>, <span class="st">"tests/test.2.fastq.gz"</span>]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> process_fastq_files(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    config<span class="op">=</span>config,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    fastq_files<span class="op">=</span>fastq_files,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    compress_output<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    search_both_reads<span class="op">=</span><span class="va">True</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="key-concepts" class="level2">
+<h2 class="anchored" data-anchor-id="key-concepts">Key Concepts</h2>
+<section id="barcode-types" class="level3">
+<h3 class="anchored" data-anchor-id="barcode-types">Barcode Types</h3>
+<p>BarcodeSeqKit supports three types of barcode configurations:</p>
+<ol type="1">
+<li><strong>Generic barcodes</strong>: Use these when you just want to find a specific sequence regardless of location</li>
+<li><strong>5’ barcodes</strong>: Use these when the barcode is expected at the 5’ end of the sequence</li>
+<li><strong>3’ barcodes</strong>: Use these when the barcode is expected at the 3’ end of the sequence</li>
+</ol>
+</section>
+</section>
+<section id="barcode-orientations" class="level2">
+<h2 class="anchored" data-anchor-id="barcode-orientations">Barcode Orientations</h2>
+<p>For each barcode, BarcodeSeqKit tracks two possible orientations:</p>
+<ul>
+<li><strong>Forward (FR)</strong>: The barcode appears in its specified sequence</li>
+<li><strong>Reverse Complement (RC)</strong>: The barcode appears as its reverse complement</li>
+</ul>
+</section>
+<section id="softclipped-regions" class="level2">
+<h2 class="anchored" data-anchor-id="softclipped-regions">Softclipped Regions</h2>
+<p>When working with BAM files, the <code>--search-softclipped</code> option examines only the softclipped portions of reads:</p>
+<ul>
+<li>For forward strand reads (+): Examines the 5’ softclipped region</li>
+<li>For reverse strand reads (-): Examines the 3’ softclipped region</li>
+</ul>
+<p>This is especially useful for splice leader sequences in trypanosomatids or where barcodes are clipped during alignment.</p>
+</section>
+<section id="advanced-options" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-options">Advanced Options</h2>
+<section id="command-line-arguments" class="level3">
+<h3 class="anchored" data-anchor-id="command-line-arguments">Command-Line Arguments</h3>
+<p>BarcodeSeqKit offers a range of options to customize your extraction:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 38%">
+<col style="width: 61%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--max-mismatches N</code></td>
+<td>Allow up to N mismatches in barcode detection</td>
+</tr>
+<tr class="even">
+<td><code>--search-softclipped</code></td>
+<td>Search in softclipped regions (BAM only)</td>
+</tr>
+<tr class="odd">
+<td><code>--search-both-reads</code></td>
+<td>Look for barcodes in both reads of paired FASTQ files</td>
+</tr>
+<tr class="even">
+<td><code>--no-compress</code></td>
+<td>Disable compression for FASTQ output files</td>
+</tr>
+<tr class="odd">
+<td><code>--verbose</code></td>
+<td>Enable detailed logging</td>
+</tr>
+</tbody>
+</table>
+<p>For a complete list, run <code>barcodeseqkit --help</code>.</p>
+</section>
+<section id="barcode-configuration-files" class="level3">
+<h3 class="anchored" data-anchor-id="barcode-configuration-files">Barcode Configuration Files</h3>
+<p>For complex projects with multiple barcodes, you can use a YAML configuration file:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">barcodes</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">sequence</span><span class="kw">:</span><span class="at"> CTGACTCCTTAAGGGCC</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">location</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> 5prime</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> 5' barcode for experiment X</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">sequence</span><span class="kw">:</span><span class="at"> TAACTGAGGCCGGC</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">location</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> 3prime</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> 3' barcode for experiment X</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Then use it with:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">barcodeseqkit</span> <span class="at">--bam</span> test.bam <span class="at">--barcode-config</span> my_barcodes.yaml <span class="at">--output-prefix</span> config_extraction</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<blockquote class="blockquote">
+<p>In BarcodeSeqKit, when multiple barcodes are provided, the program uses an efficient approach: it parses the input file(s) only once while searching for all barcodes simultaneously during that single pass.</p>
+</blockquote>
+</section>
+</section>
+<section id="output-files-and-statistics" class="level2">
+<h2 class="anchored" data-anchor-id="output-files-and-statistics">Output Files and Statistics</h2>
+<p>BarcodeSeqKit generates:</p>
+<ol type="1">
+<li><strong>Categorized output files</strong>: BAM or FASTQ files containing reads matching specific barcode/orientation combinations</li>
+<li><strong>Statistics in JSON format</strong>: Detailed machine-readable statistics</li>
+<li><strong>Statistics in TSV format</strong>: Human-readable tabular statistics</li>
+</ol>
+<p>The statistics include: - Total number of reads processed - Total barcode matches found - Match counts by barcode type - Match counts by orientation - Match counts by category - Overall match rate</p>
+</section>
+<section id="statistics-only-mode" class="level2">
+<h2 class="anchored" data-anchor-id="statistics-only-mode">Statistics-Only Mode</h2>
+<p>BarcodeSeqKit now supports a “statistics-only” mode that processes files and generates detailed statistics without writing output sequence files. This feature is particularly useful for:</p>
+<ul>
+<li>Quickly analyzing barcode distributions in large datasets</li>
+<li>Performing QC checks before committing to full processing</li>
+<li>Estimating barcode frequencies without using additional disk space</li>
+<li>Benchmarking and optimization tasks</li>
+</ul>
+<section id="command-line-usage-1" class="level3">
+<h3 class="anchored" data-anchor-id="command-line-usage-1">Command-line Usage</h3>
+<p>To use statistics-only mode from the command line, add the <code>--only-stats</code> flag:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">barcodeseqkit</span> <span class="at">--bam</span> sample.bam <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">--barcode5</span> CTGACTCCTTAAGGGCC <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-prefix</span> quick_stats <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">--output-dir</span> results <span class="dt">\</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">--only-stats</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>BarcodeSeqKit has a clean, modular design:</p>
+<ol type="1">
+<li><strong>Core</strong> (<code>00_core.ipynb</code>): Data structures and configuration</li>
+<li><strong>Sequence Utilities</strong> (<code>01_sequence_utils.ipynb</code>): Barcode detection algorithms</li>
+<li><strong>BAM Processing</strong> (<code>02_bam_processing.ipynb</code>): BAM file handling</li>
+<li><strong>FASTQ Processing</strong> (<code>03_fastq_processing.ipynb</code>): FASTQ file handling</li>
+<li><strong>Command-Line Interface</strong> (<code>04_cli.ipynb</code>): Argument parsing and execution</li>
+</ol>
+</section>
+</section>
+<section id="real-world-example" class="level2">
+<h2 class="anchored" data-anchor-id="real-world-example">Real-World Example</h2>
+<p>Let’s walk through a practical example of extracting barcodes from the test data included with BarcodeSeqKit:</p>
+<div id="cell-20" class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> BarcodeSeqKit.core <span class="im">import</span> BarcodeConfig, BarcodeLocationType, BarcodeExtractorConfig</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> BarcodeSeqKit.bam_processing <span class="im">import</span> process_bam_file</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Define barcodes that we know are in the test data</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>barcodes <span class="op">=</span> [</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    BarcodeConfig(</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        sequence<span class="op">=</span><span class="st">"TAACTGAGGCCGGC"</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        location<span class="op">=</span>BarcodeLocationType.THREE_PRIME,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"3prime"</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    BarcodeConfig(</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        sequence<span class="op">=</span><span class="st">"CTGACTCCTTAAGGGCC"</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        location<span class="op">=</span>BarcodeLocationType.FIVE_PRIME,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"5prime"</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Create configuration</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"../tests/index_api"</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>os.makedirs(output_dir, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> BarcodeExtractorConfig(</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    barcodes<span class="op">=</span>barcodes,</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    output_prefix<span class="op">=</span><span class="st">"example_run"</span>,</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span>output_dir,</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    max_mismatches<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    search_softclipped<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">True</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Process the BAM file (if it exists)</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>test_bam <span class="op">=</span> <span class="st">"../tests/test.bam"</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.path.exists(test_bam):</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Processing </span><span class="sc">{</span>test_bam<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    stats <span class="op">=</span> process_bam_file(config, test_bam)</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Print summary statistics</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Results summary:"</span>)</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Total reads: </span><span class="sc">{</span>stats<span class="sc">.</span>total_reads<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Total barcode matches: </span><span class="sc">{</span>stats<span class="sc">.</span>total_barcode_matches<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> stats.total_reads <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>        match_rate <span class="op">=</span> (stats.total_barcode_matches <span class="op">/</span> stats.total_reads) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Match rate: </span><span class="sc">{</span>match_rate<span class="sc">:.2f}</span><span class="ss">%"</span>)</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Print barcode-specific statistics</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> barcode_name, count <span class="kw">in</span> stats.matches_by_barcode.items():</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>barcode_name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>count<span class="sc">}</span><span class="ss"> matches"</span>)</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Print orientation-specific statistics</span></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> orientation, count <span class="kw">in</span> stats.matches_by_orientation.items():</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Orientation </span><span class="sc">{</span>orientation<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>count<span class="sc">}</span><span class="ss"> matches"</span>)</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Test file not found: </span><span class="sc">{</span>test_bam<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-03-24 14:06:24,292 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
+2025-03-24 14:06:24,293 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processing ../tests/test.bam</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"ac7b3ac731e64f37927ae781eea95c25","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-03-24 14:06:24,340 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"5bba8d3922a04cf29c9a3c2c321e0274","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-03-24 14:06:24,411 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientFR.bam
+2025-03-24 14:06:24,424 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode3_orientRC.bam
+2025-03-24 14:06:24,433 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientFR.bam
+2025-03-24 14:06:24,442 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_barcode5_orientRC.bam
+2025-03-24 14:06:24,450 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_api/example_run_noBarcode.bam</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Results summary:
+Total reads: 498
+Total barcode matches: 18
+Match rate: 3.61%
+  5prime: 10 matches
+  3prime: 8 matches
+  Orientation FR: 10 matches
+  Orientation RC: 8 matches</code></pre>
+</div>
+</div>
+<div id="cell-21" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> BarcodeExtractorConfig(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    barcodes<span class="op">=</span>barcodes,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    output_prefix<span class="op">=</span><span class="st">"quick_stats"</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">"../tests/quick_stats"</span>,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    max_mismatches<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    write_output_files<span class="op">=</span><span class="va">False</span>  <span class="co"># Skip writing sequence files</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Process BAM file and get statistics only</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> process_bam_file(config, <span class="st">"../tests/test.bam"</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total reads: </span><span class="sc">{</span>stats<span class="sc">.</span>total_reads<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total barcode matches: </span><span class="sc">{</span>stats<span class="sc">.</span>total_barcode_matches<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Match rate: </span><span class="sc">{</span>stats<span class="sc">.</span>total_barcode_matches <span class="op">/</span> stats<span class="sc">.</span>total_reads <span class="op">*</span> <span class="dv">100</span><span class="sc">:.2f}</span><span class="ss">%"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-03-24 14:07:19,200 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
+2025-03-24 14:07:19,202 - BarcodeSeqKit - INFO - Output categories: ['barcode3_orientFR', 'barcode3_orientRC', 'barcode5_orientFR', 'barcode5_orientRC', 'noBarcode']</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"5dd455cee9fa4b329bf2c9360119feaa","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-03-24 14:07:19,259 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total reads: 498
+Total barcode matches: 18
+Match rate: 3.61%</code></pre>
+</div>
+</div>
+<div id="cell-22" class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>barcodeseqkit <span class="op">--</span>bam ..<span class="op">/</span>tests<span class="op">/</span>test.bam <span class="op">\</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>              <span class="op">--</span>barcode5 CTGACTCCTTAAGGGCC <span class="op">\</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>              <span class="op">--</span>barcode3 TAACTGAGGCCGGC <span class="op">\</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>              <span class="op">--</span>output<span class="op">-</span>prefix dual_barcode <span class="op">\</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>              <span class="op">--</span>output<span class="op">-</span><span class="bu">dir</span> ..<span class="op">/</span>tests<span class="op">/</span>index_cli</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Input BAM file: ../tests/test.bam
+Using 5' barcode with sequence: CTGACTCCTTAAGGGCC
+Using 3' barcode with sequence: TAACTGAGGCCGGC
+Saved configuration to ../tests/index_cli/dual_barcode_config.yaml
+2025-03-17 12:18:29,756 - BarcodeSeqKit - INFO - BAM file: ../tests/test.bam (498 reads)
+2025-03-17 12:18:29,756 - BarcodeSeqKit - INFO - Output categories: ['barcode5_orientFR', 'barcode5_orientRC', 'barcode3_orientFR', 'barcode3_orientRC', 'noBarcode']
+Classifying reads: 100%|███████████████████| 498/498 [00:00&lt;00:00, 58040.55it/s]
+2025-03-17 12:18:29,810 - BarcodeSeqKit - INFO - First pass complete: classified 18 reads
+Writing reads: 100%|██████████████████████| 498/498 [00:00&lt;00:00, 230344.44it/s]
+2025-03-17 12:18:29,816 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode5_orientFR.bam
+2025-03-17 12:18:29,844 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode5_orientRC.bam
+2025-03-17 12:18:29,856 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode3_orientFR.bam
+2025-03-17 12:18:29,882 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_barcode3_orientRC.bam
+2025-03-17 12:18:29,894 - BarcodeSeqKit - INFO - Sorting and indexing ../tests/index_cli/dual_barcode_noBarcode.bam
+Extraction complete</code></pre>
+</div>
+</div>
+</section>
+<section id="using-barcodeseqkit-with-containers" class="level1">
+<h1>Using BarcodeSeqKit with Containers</h1>
+<p>BarcodeSeqKit is available as a containerized application, which allows you to run it without installing any dependencies on your system. This guide explains how to use BarcodeSeqKit with Docker and Singularity containers.</p>
+<section id="docker-usage" class="level2">
+<h2 class="anchored" data-anchor-id="docker-usage">Docker Usage</h2>
+<section id="prerequisites" class="level3">
+<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
+<ul>
+<li><a href="https://docs.docker.com/get-docker/">Docker</a> installed on your system</li>
+</ul>
+</section>
+<section id="pulling-the-docker-image" class="level3">
+<h3 class="anchored" data-anchor-id="pulling-the-docker-image">Pulling the Docker Image</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> pull mtinti/barcodeseqkit:0.0.4</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="basic-usage-with-the-included-test-file" class="level3">
+<h3 class="anchored" data-anchor-id="basic-usage-with-the-included-test-file">Basic Usage with the Included Test File</h3>
+<p>The container includes a test BAM file at <code>/app/tests/test.bam</code>. You can run BarcodeSeqKit on this test file and save the results to your local machine:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a directory for the results</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> results</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the container with the included test file</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="dt">\</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-v</span> <span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/results:/output <span class="dt">\</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  mtinti/barcodeseqkit:0.0.4 <span class="dt">\</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bam</span> /app/tests/test.bam <span class="dt">\</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--barcode5</span> CTGACTCCTTAAGGGCC <span class="dt">\</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--barcode3</span> TAACTGAGGCCGGC <span class="dt">\</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output-prefix</span> test_extraction <span class="dt">\</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output-dir</span> /output <span class="dt">\</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--search-softclipped</span> <span class="dt">\</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--verbose</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This command: - Uses the test BAM file already included in the container - Mounts your local <code>results</code> directory to <code>/output</code> inside the container - Extracts reads matching the specified 5’ and 3’ barcodes - Saves the results in your local <code>results</code> directory</p>
+</section>
+<section id="processing-your-own-data" class="level3">
+<h3 class="anchored" data-anchor-id="processing-your-own-data">Processing Your Own Data</h3>
+<p>To process your own data files:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="dt">\</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-v</span> /path/to/your/data:/data <span class="dt">\</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  mtinti/barcodeseqkit:0.0.4 <span class="dt">\</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bam</span> /data/your_sample.bam <span class="dt">\</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--barcode</span> ACGTACGT <span class="dt">\</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output-prefix</span> extraction <span class="dt">\</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output-dir</span> /data/results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>BarcodeSeqKit provides a streamlined, user-friendly approach to barcode extraction from sequencing data. With its intuitive interface and flexible options, it’s suitable for a wide range of applications, from simple barcode detection to complex multi-barcode analyses.</p>
+<p>Whether you’re working with BAM files, FASTQ files, single barcodes, or multiple barcodes with specific locations, BarcodeSeqKit offers a straightforward solution for your barcode extraction needs.</p>
+<p>For detailed API documentation, check out the module-specific notebooks: - <a href="./core.html">Core Data Structures</a> - <a href="./sequence_utils.html">Sequence Utilities</a> - <a href="./bam_processing.html">BAM Processing</a> - <a href="./fastq_processing.html">FASTQ Processing</a> - <a href="./cli.html">Command-Line Interface</a></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/mtinti\.github\.io\/BarcodeSeqKit");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/mtinti/BarcodeSeqKit/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

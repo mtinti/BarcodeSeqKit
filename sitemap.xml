@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/index.html</loc>
+    <lastmod>2025-03-26T10:07:11.746Z</lastmod>
+  </url>
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/cli.html</loc>
+    <lastmod>2025-03-26T10:07:11.738Z</lastmod>
+  </url>
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/bam_processing.html</loc>
+    <lastmod>2025-03-26T10:07:11.709Z</lastmod>
+  </url>
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/core.html</loc>
+    <lastmod>2025-03-26T10:07:11.528Z</lastmod>
+  </url>
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/fastq_processing.html</loc>
+    <lastmod>2025-03-26T10:07:11.723Z</lastmod>
+  </url>
+  <url>
+    <loc>https://mtinti.github.io/BarcodeSeqKit/sequence_utils.html</loc>
+    <lastmod>2025-03-26T10:07:11.734Z</lastmod>
+  </url>
+</urlset>
